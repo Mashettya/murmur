@@ -1,309 +1,546 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Readmybook</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiroTrade - God View</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0a0a0a;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;position:sticky;top:0;z-index:10;background:linear-gradient(to bottom,#0a0a0a 80%,transparent);}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;}
-.brand span{color:#a78bfa;}
-.nav{display:flex;align-items:center;gap:16px;}
-.nav-lnk{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;}
-.admin-link{font-size:12px;color:rgba(255,255,255,0.35);cursor:pointer;border:0.5px solid rgba(255,255,255,0.12);padding:5px 11px;border-radius:8px;}
-.search-wrap{padding:0 20px 14px;}
-.search-box{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:11px 16px;}
-.search-box input{flex:1;background:transparent;border:none;outline:none;font-size:14px;color:#fff;font-family:'DM Sans',sans-serif;}
-.search-box input::placeholder{color:rgba(255,255,255,0.22);}
-.cat-section{margin-bottom:36px;}
-.cat-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px 14px;}
-.cat-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
-.cat-pill{font-size:11px;color:rgba(255,255,255,0.35);border:0.5px solid rgba(255,255,255,0.12);padding:3px 10px;border-radius:12px;}
-.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 20px;}
-@media(max-width:700px){.cat-grid{grid-template-columns:repeat(2,1fr);}}
-.tile{border-radius:14px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:2/3;background:#111;}
-.tile-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:46px;transition:transform 0.4s ease;}
-.tile:hover .tile-img{transform:scale(1.05);}
-.tile-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.95) 0%,rgba(0,0,0,0.2) 60%,transparent 100%);}
-.tile-content{position:absolute;bottom:0;left:0;right:0;padding:12px 11px;}
-.tile-genre{font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:4px;}
-.tile-title{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;font-weight:600;line-height:1.35;color:#fff;margin-bottom:7px;}
-.tile-meta{display:flex;align-items:center;}
-.tile-author{font-size:10px;color:rgba(255,255,255,0.35);}
-.tile-read{font-size:10px;color:rgba(255,255,255,0.25);margin-left:auto;}
-#reader-page{display:none;flex-direction:column;min-height:100vh;background:#0a0a0a;}
-.reader-topbar{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:0.5px solid rgba(255,255,255,0.07);position:sticky;top:0;background:#0a0a0a;z-index:5;}
-.back-btn{font-size:13px;color:rgba(255,255,255,0.45);cursor:pointer;}
-.reader-cat-badge{font-size:10px;font-weight:500;letter-spacing:0.8px;text-transform:uppercase;padding:3px 10px;border-radius:10px;background:rgba(167,139,250,0.15);color:#a78bfa;border:0.5px solid rgba(167,139,250,0.3);}
-.reader-hero{padding:28px 20px 20px;}
-.reader-emoji{font-size:56px;margin-bottom:16px;}
-.reader-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;line-height:1.3;margin-bottom:10px;}
-.reader-byline{font-size:13px;color:rgba(255,255,255,0.4);}
-.reader-divider{width:40px;height:2px;background:linear-gradient(to right,#a78bfa,transparent);margin:18px 0;}
-.reader-body{padding:0 20px 60px;font-size:15px;line-height:1.9;color:rgba(255,255,255,0.82);max-width:680px;}
-.reader-body p{margin-bottom:20px;}
-.reader-body p:first-child::first-letter{font-family:'Playfair Display',serif;font-size:56px;font-weight:700;float:left;line-height:0.8;margin:8px 10px 0 0;color:#a78bfa;}
-.reader-body h3{font-family:'Playfair Display',serif;font-size:18px;color:rgba(255,255,255,0.7);margin:30px 0 14px;font-style:italic;}
-#chat-page{display:none;flex-direction:column;height:100vh;background:#0a0a0a;}
-.chat-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid rgba(255,255,255,0.08);}
-.chat-header-left{display:flex;align-items:center;gap:10px;}
-.online-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e;}
-.chat-name{font-size:14px;font-weight:500;}
-.chat-sub{font-size:11px;color:rgba(255,255,255,0.3);}
-.close-chat{font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);padding:5px 14px;border-radius:8px;}
-.messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
-.msg-group{display:flex;flex-direction:column;}
-.msg-group.right{align-items:flex-end;}
-.msg-group.left{align-items:flex-start;}
-.msg{max-width:75%;padding:9px 14px;font-size:13px;line-height:1.5;border-radius:16px;}
-.msg.them{background:rgba(255,255,255,0.08);color:#fff;border-bottom-left-radius:4px;}
-.msg.me{background:#fff;color:#0a0a0a;border-bottom-right-radius:4px;}
-.msg-time{font-size:10px;color:rgba(255,255,255,0.2);margin-top:3px;}
-.chat-input-bar{padding:12px 20px;border-top:0.5px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:center;}
-.chat-input{flex:1;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:9px 16px;font-size:13px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;}
-.chat-input::placeholder{color:rgba(255,255,255,0.25);}
-.send-btn{width:36px;height:36px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:15px;}
-#admin-login{display:none;flex-direction:column;align-items:center;justify-content:center;height:100vh;}
-.admin-login-box{background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:90%;max-width:320px;display:flex;flex-direction:column;gap:14px;}
-.admin-login-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;text-align:center;}
-.admin-login-input{background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.15);border-radius:10px;padding:11px 16px;font-size:14px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;width:100%;}
-.admin-login-btn{background:#fff;color:#0a0a0a;border:none;border-radius:10px;padding:11px;font-size:14px;font-weight:500;cursor:pointer;}
-.admin-login-err{font-size:12px;color:#ef4444;text-align:center;display:none;}
-#admin-page{display:none;flex-direction:column;height:100vh;background:#0a0a0a;}
-.admin-header{padding:16px 20px;border-bottom:0.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;}
-.admin-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
-.admin-sub{font-size:11px;color:rgba(255,255,255,0.3);}
-.admin-back{font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;border:0.5px solid rgba(255,255,255,0.15);padding:5px 14px;border-radius:8px;}
-.admin-body{display:flex;flex:1;overflow:hidden;}
-.convo-list{width:220px;border-right:0.5px solid rgba(255,255,255,0.08);overflow-y:auto;flex-shrink:0;}
-@media(max-width:600px){.convo-list{width:100px;}}
-.convo-item{padding:13px 15px;border-bottom:0.5px solid rgba(255,255,255,0.06);cursor:pointer;}
-.convo-item:hover{background:rgba(255,255,255,0.04);}
-.convo-item.active{background:rgba(255,255,255,0.07);}
-.convo-name{font-size:13px;font-weight:500;margin-bottom:2px;}
-.convo-preview{font-size:11px;color:rgba(255,255,255,0.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.convo-badge{display:inline-block;background:#22c55e;color:#000;font-size:9px;font-weight:600;padding:2px 6px;border-radius:8px;margin-left:6px;}
-.admin-chat{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.admin-chat-header{padding:12px 16px;border-bottom:0.5px solid rgba(255,255,255,0.08);font-size:13px;color:rgba(255,255,255,0.5);}
-.admin-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px;}
-.admin-msg{max-width:75%;padding:8px 12px;font-size:13px;line-height:1.5;border-radius:12px;}
-.admin-msg-meta{font-size:10px;color:rgba(255,255,255,0.22);margin-top:2px;}
-.admin-reply-bar{padding:12px 16px;border-top:0.5px solid rgba(255,255,255,0.08);display:flex;gap:10px;}
-.admin-reply-input{flex:1;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:9px 16px;font-size:13px;color:#fff;outline:none;font-family:'DM Sans',sans-serif;}
-.admin-send-btn{width:36px;height:36px;border-radius:50%;background:#fff;border:none;cursor:pointer;font-size:15px;}
-.toast{position:fixed;top:16px;right:16px;background:#22c55e;color:#000;font-size:13px;font-weight:500;padding:10px 18px;border-radius:10px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
-.toast.show{opacity:1;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0c0f;color:#e8ecf0;font-family:'Space Mono',monospace;font-size:12px;line-height:1.5;overflow-x:hidden}
+:root{--bg:#0a0c0f;--bg2:#111318;--bg3:#181c22;--border:#1e2330;--accent:#00e5a0;--red:#e03040;--green:#00c87a;--warn:#e0a000;--muted:#5a6478;--text:#e8ecf0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.header{background:#0a0c0f;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;letter-spacing:3px;color:var(--accent)}
+.badge{font-size:9px;letter-spacing:2px;color:var(--muted);border:1px solid var(--border);padding:2px 8px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;margin-right:5px;animation:pulse 2s infinite}
+.ticker{background:#0a0c0f;padding:6px 16px;display:flex;gap:24px;font-size:11px;border-bottom:1px solid var(--border);overflow:hidden}
+.tick-sep{color:var(--border)}
+.grid{display:grid;grid-template-columns:200px 1fr 190px;gap:1px;background:var(--border);min-height:calc(100vh - 80px)}
+.left{background:var(--bg2);padding:14px;overflow-y:auto}
+.section-title{font-size:9px;letter-spacing:2px;color:var(--muted);padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:12px;margin-top:16px;text-transform:uppercase}
+.section-title:first-child{margin-top:0}
+.metric{margin-bottom:12px}
+.mlabel{font-size:10px;color:var(--muted);margin-bottom:3px}
+.mval{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.bar-bg{height:3px;background:var(--bg3);border-radius:2px;margin-top:5px}
+.bar-fill{height:3px;border-radius:2px;transition:width .5s}
+.state-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.state-cell{background:var(--bg3);border:1px solid var(--border);padding:8px;border-radius:3px;text-align:center}
+.state-cell .sl{font-size:9px;color:var(--muted)}
+.state-cell .sv{font-weight:700;font-size:11px;margin-top:2px}
+.center{background:var(--bg2);display:flex;flex-direction:column;gap:1px}
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border)}
+.stat-box{background:var(--bg2);padding:10px 14px;text-align:center}
+.stat-label{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.stat-val{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-top:3px}
+.chart-wrap{background:var(--bg2);padding:14px;flex:1}
+.chart-title{font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase}
+.trades-wrap{background:var(--bg2);padding:14px}
+.trades-head{display:grid;grid-template-columns:45px 65px 65px 50px 55px 65px;gap:4px;font-size:9px;color:var(--muted);letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:6px;text-transform:uppercase}
+.trade-row{display:grid;grid-template-columns:45px 65px 65px 50px 55px 65px;gap:4px;font-size:10px;padding:4px 0;border-bottom:1px solid var(--border);align-items:center}
+.trade-row:last-child{border-bottom:none}
+.tag{padding:1px 6px;border-radius:2px;font-size:9px;font-weight:700}
+.tag-buy{background:rgba(0,200,122,.2);color:var(--green)}
+.tag-sell{background:rgba(224,48,64,.2);color:var(--red)}
+.right{background:var(--bg2);display:flex;flex-direction:column;gap:1px}
+.rp{background:var(--bg2);padding:14px}
+.score-factors{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.factor-row{display:flex;justify-content:space-between;align-items:center;font-size:10px}
+.dots{display:flex;gap:2px}
+.dot{width:8px;height:8px;border-radius:1px}
+.dot-on{background:var(--green)}
+.dot-off{background:var(--border)}
+.act-item{font-size:10px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:6px}
+.act-item:last-child{border-bottom:none}
+.act-time{font-size:9px;background:var(--bg3);padding:1px 5px;border-radius:2px;color:var(--muted);white-space:nowrap}
+.sig-box{background:var(--bg3);border:1px solid var(--border);padding:10px;border-radius:3px;margin-bottom:12px}
+.sig-tag{display:inline-block;padding:2px 10px;border-radius:2px;font-size:10px;font-weight:700;letter-spacing:1px}
+.sig-none{background:rgba(90,100,120,.2);color:var(--muted);border:1px solid var(--border)}
+.sig-buy{background:rgba(0,200,122,.15);color:var(--green);border:1px solid rgba(0,200,122,.3)}
+.sig-sell{background:rgba(224,48,64,.15);color:var(--red);border:1px solid rgba(224,48,64,.3)}
+.open-trade{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green);padding:8px;border-radius:3px;margin-bottom:6px;font-size:10px}
+.open-trade.sell{border-left-color:var(--red)}
+.live-badge{font-size:9px;padding:2px 6px;border-radius:2px;margin-left:6px}
+.live-ok{background:rgba(0,200,122,.15);color:var(--green)}
+.live-off{background:rgba(90,100,120,.15);color:var(--muted)}
 </style>
 </head>
 <body>
-<div id="stories-page">
-  <div class="topbar">
-    <div class="brand">READ<span>MY</span>BOOK</div>
-    <div class="nav"><span class="nav-lnk">Discover</span><span class="nav-lnk">Following</span><span class="admin-link" id="admin-link">&#9776;</span></div>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:14px">
+    <span class="logo">MIROTRADE</span>
+    <span class="badge">GOD VIEW</span>
+    <span class="badge">PAPER TRADING</span>
+    <span class="live-badge live-off" id="live-badge">STATIC</span>
   </div>
-  <div class="search-wrap"><div class="search-box"><input type="text" id="search-input" placeholder="Search stories, authors, genres..." autocomplete="off" spellcheck="false"/></div></div>
-  <div id="story-feed"></div>
-</div>
-<div id="reader-page">
-  <div class="reader-topbar"><div class="back-btn" id="back-btn">&#8592; Back</div><div class="reader-cat-badge" id="reader-badge"></div></div>
-  <div class="reader-hero"><div class="reader-emoji" id="reader-emoji"></div><div class="reader-title" id="reader-title"></div><div class="reader-byline" id="reader-byline"></div><div class="reader-divider"></div></div>
-  <div class="reader-body" id="reader-body"></div>
-</div>
-<div id="chat-page">
-  <div class="chat-header">
-    <div class="chat-header-left"><div class="online-dot"></div><div><div class="chat-name">Private Channel</div><div class="chat-sub">Session only</div></div></div>
-    <div class="close-chat" id="close-btn">Close</div>
-  </div>
-  <div class="messages" id="messages"></div>
-  <div class="chat-input-bar"><input class="chat-input" id="chat-input" type="text" placeholder="Type a message..."/><button class="send-btn" id="send-btn">&#10148;</button></div>
-</div>
-<div id="admin-login">
-  <div class="admin-login-box">
-    <div class="admin-login-title">Admin Access</div>
-    <input class="admin-login-input" type="password" id="admin-pass" placeholder="Enter admin password"/>
-    <button class="admin-login-btn" id="admin-login-btn">Enter</button>
-    <div class="admin-login-err" id="admin-err">Wrong password</div>
+  <div style="display:flex;align-items:center;gap:20px;font-size:11px">
+    <span><span class="live-dot"></span><span style="color:var(--accent)">LIVE</span></span>
+    <span style="color:var(--muted)" id="clock">--:--:--</span>
+    <span style="color:var(--muted)" id="date-display">--</span>
+    <span style="color:var(--muted)">XAUUSD H1</span>
   </div>
 </div>
-<div id="admin-page">
-  <div class="admin-header"><div><div class="admin-title">Readmybook Admin</div><div class="admin-sub">All conversations</div></div><div class="admin-back" id="admin-back">&#8592; Exit</div></div>
-  <div class="admin-body">
-    <div class="convo-list" id="convo-list"></div>
-    <div class="admin-chat">
-      <div class="admin-chat-header" id="admin-chat-header">Select a conversation</div>
-      <div class="admin-messages" id="admin-messages"></div>
-      <div class="admin-reply-bar"><input class="admin-reply-input" id="admin-reply-input" type="text" placeholder="Reply..."/><button class="admin-send-btn" id="admin-send-btn">&#10148;</button></div>
+
+<div class="ticker">
+  <span style="color:var(--muted)">GOLD</span>
+  <span id="gold-price" style="font-weight:700">--</span>
+  <span id="gold-chg" style="color:var(--green)">--</span>
+  <span class="tick-sep">|</span>
+  <span style="color:var(--muted)">BID</span>
+  <span id="gold-bid" style="font-weight:700;color:var(--green)">--</span>
+  <span class="tick-sep">|</span>
+  <span style="color:var(--muted)">ASK</span>
+  <span id="gold-ask" style="font-weight:700;color:var(--red)">--</span>
+  <span class="tick-sep">|</span>
+  <span style="color:var(--muted)">SPREAD</span>
+  <span id="gold-spread" style="color:var(--warn)">--</span>
+  <span class="tick-sep">|</span>
+  <span style="color:var(--muted)">SESSION</span>
+  <span id="session-ticker" style="color:var(--accent);font-weight:700">--</span>
+  <span class="tick-sep">|</span>
+  <span style="color:var(--muted)">UPDATED</span>
+  <span id="last-update" style="color:var(--muted)">--</span>
+</div>
+
+<div class="grid">
+
+  <div class="left">
+    <div class="section-title">account balance</div>
+    <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--accent)" id="balance-display">$10,000</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px" id="today-pnl">+$0.00 today</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px">Equity: <span id="equity-display" style="color:var(--text)">--</span></div>
+
+    <div class="section-title">performance</div>
+    <div class="metric">
+      <div class="mlabel">WIN RATE</div>
+      <div class="mval" style="color:var(--green)" id="wr-display">0%</div>
+      <div class="bar-bg"><div class="bar-fill" id="wr-bar" style="background:var(--green);width:0%"></div></div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">PROFIT FACTOR</div>
+      <div class="mval" style="color:var(--accent)" id="pf-display">--</div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">MAX DRAWDOWN</div>
+      <div class="mval" style="color:var(--green)" id="dd-display">0.0%</div>
+      <div class="bar-bg"><div class="bar-fill" id="dd-bar" style="background:var(--warn);width:0%"></div></div>
+    </div>
+    <div class="metric">
+      <div class="mlabel">TOTAL RETURN</div>
+      <div class="mval" style="color:var(--accent)" id="ret-display">+0%</div>
+    </div>
+
+    <div class="section-title">current signal</div>
+    <div class="sig-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="sig-tag sig-none" id="signal-tag">NONE</span>
+        <span style="font-size:10px;color:var(--muted)">XAUUSD</span>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-bottom:4px">BULL SCORE</div>
+      <div class="bar-bg"><div class="bar-fill" id="bull-bar" style="background:var(--green);width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px">
+        <span id="score-display" style="color:var(--muted)">0/20</span>
+        <span style="color:var(--muted)">min: 11</span>
+      </div>
+    </div>
+
+    <div class="section-title">system status</div>
+    <div class="state-grid">
+      <div class="state-cell">
+        <div class="sl">NEWS</div>
+        <div class="sv" id="news-status" style="color:var(--muted)">--</div>
+      </div>
+      <div class="state-cell">
+        <div class="sl">RISK</div>
+        <div class="sv" id="risk-status" style="color:var(--muted)">--</div>
+      </div>
+      <div class="state-cell">
+        <div class="sl">ORCH</div>
+        <div class="sv" id="orch-status" style="color:var(--muted)">--</div>
+      </div>
+      <div class="state-cell">
+        <div class="sl">SESSION</div>
+        <div class="sv" style="color:var(--accent)" id="session-cell">--</div>
+      </div>
+      <div class="state-cell">
+        <div class="sl">MTF</div>
+        <div class="sv" id="mtf-status" style="color:var(--muted)">--</div>
+      </div>
+      <div class="state-cell">
+        <div class="sl">OPEN POS</div>
+        <div class="sv" style="color:var(--text)" id="mt5-open">--</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-label">Total Trades</div>
+        <div class="stat-val" style="color:var(--text)" id="total-trades">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Wins</div>
+        <div class="stat-val" style="color:var(--green)" id="total-wins">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Losses</div>
+        <div class="stat-val" style="color:var(--red)" id="total-losses">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Net P&L</div>
+        <div class="stat-val" style="color:var(--green)" id="net-pnl">$0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Open Now</div>
+        <div class="stat-val" style="color:var(--warn)" id="open-count">0</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-title" id="chart-title">equity curve — waiting for trades...</div>
+      <div style="position:relative;width:100%;height:240px">
+        <canvas id="equityChart"></canvas>
+      </div>
+    </div>
+
+    <div class="trades-wrap">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">recent trades</div>
+      <div class="trades-head">
+        <span>type</span><span>entry</span><span>exit</span><span>result</span><span>p&l</span><span>balance</span>
+      </div>
+      <div id="trade-rows">
+        <div style="font-size:10px;color:var(--muted);padding:12px 0;text-align:center">No trades yet — waiting for first signal</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="rp">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase">confluence score</div>
+      <div style="display:flex;align-items:center;justify-content:center;margin-bottom:10px">
+        <svg width="110" height="110" viewBox="0 0 110 110">
+          <circle cx="55" cy="55" r="46" fill="none" stroke="#181c22" stroke-width="9"/>
+          <circle id="score-ring" cx="55" cy="55" r="46" fill="none" stroke="#00c87a" stroke-width="9"
+            stroke-dasharray="289" stroke-dashoffset="289"
+            stroke-linecap="round" transform="rotate(-90 55 55)" style="transition:stroke-dashoffset .5s"/>
+          <text x="55" y="51" text-anchor="middle" fill="#e8ecf0" font-size="22" font-weight="700" font-family="Syne,sans-serif" id="ring-num">0</text>
+          <text x="55" y="66" text-anchor="middle" fill="#5a6478" font-size="10" font-family="Space Mono,monospace">/20</text>
+        </svg>
+      </div>
+      <div class="score-factors">
+        <div class="factor-row"><span style="color:var(--muted)">Order Block</span><div class="dots" id="dots-ob"><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+        <div class="factor-row"><span style="color:var(--muted)">Fair Value Gap</span><div class="dots" id="dots-fvg"><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+        <div class="factor-row"><span style="color:var(--muted)">BOS / CHoCH</span><div class="dots" id="dots-bos"><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+        <div class="factor-row"><span style="color:var(--muted)">EMA Align</span><div class="dots" id="dots-ema"><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+        <div class="factor-row"><span style="color:var(--muted)">Kill Zone</span><div class="dots" id="dots-kz"><div class="dot dot-off"></div><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+        <div class="factor-row"><span style="color:var(--muted)">S/R Level</span><div class="dots" id="dots-sr"><div class="dot dot-off"></div><div class="dot dot-off"></div></div></div>
+      </div>
+    </div>
+
+    <div class="rp" style="flex:1">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">market narrative</div>
+      <div id="narrative" style="font-size:10px;color:var(--muted);line-height:1.6">Loading market analysis...</div>
+    </div>
+
+    <div class="rp" style="border-top:1px solid var(--border)">
+      <div style="font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">open trades</div>
+      <div id="open-trades-list">
+        <div style="font-size:10px;color:var(--muted);text-align:center;padding:12px 0">No open trades</div>
+      </div>
+    </div>
+
+    <div style="padding:12px 14px;background:var(--bg2);border-top:1px solid var(--border)">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:6px;text-align:center" id="last-update-full">Last update: --</div>
+      <button onclick="loadState()" style="width:100%;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.25);color:var(--accent);padding:8px;font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:3px;font-family:'Space Mono',monospace">REFRESH NOW</button>
     </div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+
 <script>
-const SUPABASE_URL='https://zglmlqzcjrkkdkjxfgwh.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpnbG1scXpjanJra2RranhmZ3doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzgwODQsImV4cCI6MjA5NDg1NDA4NH0.AMJk4lyJdedpXu4kqog8w9Lhjrv7ZNn5pkyxWP7NckE';
-const ADMIN_PASSWORD='Mashetty@newapp.112';
-const {createClient}=supabase;
-const db=createClient(SUPABASE_URL,SUPABASE_KEY);
-const categories=[
-{id:'mystery',label:'Mystery & Thriller',color:'#818cf8',bg:'#1a1040',stories:[
-{emoji:'🌙',title:'She Left a Note in Every Mirror',author:'Anya Mehta',read:'10 min',body:`<p>The first note appeared on a Tuesday. Nina found it stuck to the bathroom mirror with tape so old it had turned yellow. The handwriting was hers, or something close to hers, the way a forgery is close but never quite right. It read: <em>Don't go to work today.</em></p><p>She went anyway. Her colleague Marcus didn't show up. By noon they found his car wrapped around a telephone pole on Route 9, the same road Nina drove every morning.</p><p>The second note appeared on Friday. <em>He already knows.</em> She stared at it for a long time. She lived alone, had lived alone for three years since Daniel left. The apartment had become a place she navigated carefully, like a room full of furniture in the dark.</p><p>She called her sister, who said it was stress. She called her therapist, who had a two-week waiting list. She called the police, who were politely unconvinced.</p><p>The third note was different. Not on the mirror. Tucked inside her locked diary, between pages untouched for months. It said: <em>We are running out of time.</em></p><h3>Part Two</h3><p>That night Nina sat at her kitchen table with every light on and waited. At 3 a.m. she understood with cold certainty that the notes were not from an intruder. The handwriting was exactly hers. Written in her sleep, in a state she could not remember entering or leaving.</p><p>She picked up a pen and opened to a blank page. Without meaning to, her hand began to move. The words that came were not instructions. They were a story, her story, written in past tense, describing events that had not yet happened.</p><p>According to those pages she would receive a phone call at noon from a number she did not recognise. A man would say her name and nothing else. She would hang up. At 7 p.m. she would look out her kitchen window and see someone standing on the pavement below.</p><p>At noon her phone rang. Unknown number. A man said her name, then silence. She hung up and sat for a long time, thinking about the gap between knowing something and being able to stop it.</p><p>At 6:58 she positioned herself away from the window. She held out until 7:04 before looking. The street was empty. She exhaled for what felt like the first time in eighteen hours. Then her phone buzzed with a text from the same number: <em>I see you moved back from the window. That was the right choice.</em></p><p>She understood then that the notes were not predictions. They were a conversation, from something that knew the shape of what was coming and was trying, in the only language available, to help her through. That night she wrote at the kitchen table: <em>What do I do next?</em> In the morning there was an answer. There always was.</p>`},
-{emoji:'🔍',title:'The Last Person to See Him Alive',author:'Leo Vance',read:'11 min',body:`<p>Everyone in the village of Drebble Cross knew Thomas Holt had enemies. The question was never whether someone wanted him dead, but who had been patient enough to wait.</p><p>Detective Rae Solano arrived on a grey Wednesday to find the body exactly as described: sitting upright in the old mill chair, hands folded neatly, a cup of cold tea beside him. He looked like a man who had simply stopped.</p><p>The coroner confirmed he had been poisoned slowly over several weeks. Whoever had done it had access to his kitchen, his routine, and most disturbingly, his trust.</p><p>Rae began with the list. Thirty-one people had reason to dislike him. She narrowed it to nine with means, four with opportunity, then on a cold Thursday evening, to one.</p><h3>The Farmhouse</h3><p>She knocked at the old farmhouse at the edge of the village at half past six. A woman answered, early sixties, gardening gloves still on, soil on her knees. She looked at Rae without surprise, without fear, with only exhausted relief.</p><p>"I have been expecting you," she said. "Come in."</p><p>Her name was Iris Calloway, Thomas Holt's neighbour for thirty years. She folded her gloved hands on the kitchen table and looked at Rae steadily. "He destroyed my son. Not quickly like violence destroys. Slowly, the way water destroys stone. Debt first, then reputation, then the marriage, then the will to get up in the morning." She paused. "My son died by his own hand four years ago March. Thomas Holt attended the funeral and shook my hand."</p><p>Rae stopped writing. She had stopped at those last three words.</p><p>"The foxglove was from my own garden," Iris said. "I grow it for the bees. Thomas took tea with me every Sunday for two years. He never noticed the taste. He was not someone who paid attention to things freely offered."</p><p>She removed her gloves and set them on the table between them with the quality of a gesture rehearsed many times in private over long years. "I am ready," she said. "I have been ready for some time." Rae looked at her for a long moment. Then she said: "Tell me about your son." They talked for two hours. When Rae finally stood to leave, the kitchen had gone dark around them and neither had thought to turn on a light.</p>`},
-{emoji:'🕯️',title:'Room 4B Has Always Been Empty',author:'Marcus Webb',read:'12 min',body:`<p>The hotel had forty rooms. Guests were assigned to all of them except one. Room 4B sat at the end of the east corridor, its door painted the same faded cream as all the others, its brass number plate polished every morning by a housekeeper named Edith who had worked at the Langham since 1987 and who refused to be asked about it.</p><p>The owner, a thin man named Gerald who wore the same grey cardigan every day, had a standard answer: "Maintenance issue." He said it with a smile that ended at his mouth.</p><p>Owen checked in on a Friday in November. He was a travel writer. He noticed things for a living. He noticed the gap in the room numbers on the key rack. He noticed the way Edith's jaw tightened when his eyes drifted toward the far corridor.</p><h3>The Sound at Two in the Morning</h3><p>At 2 a.m. on his first night he heard a television from the direction of 4B. Voices. Canned laughter. An old programme, something from the seventies. In the morning he asked Gerald. "Old pipes," Gerald said. "They carry sound from the boiler room."</p><p>On his third night Owen pressed his ear flat against the wall. The television was on again. Between the bursts of laughter, clear and close and impossible, he heard breathing. Slow, deliberate, the breathing of someone awake in the dark, listening back.</p><p>He found Edith in the linen room on his last morning, folding towels with the mechanical precision of someone whose hands have been doing the same task for decades.</p><p>"Nobody stays in 4B," he said. Her hands stopped. "That is not the same as empty," she said without looking up.</p><p>He paused outside 4B on the way back to his room. Put his hand on the door. The brass number plate was warm, far warmer than the surrounding wall, as though someone on the other side had been pressing a palm flat against it for a very long time. He checked out that afternoon without writing his review. Some places do not want to be found.</p>`},
-{emoji:'🗝️',title:'The Locksmith Who Knew Every Secret',author:'Daria Voss',read:'10 min',body:`<p>He had been making keys for forty years. This meant he had been trusted with forty years of doors: houses, offices, lockboxes, storage units containing the compressed remainder of lives that no longer fit anywhere else. People gave him their keys and in doing so gave him something more fundamental, the shape of what they needed to keep.</p><p>His name was Saul. He worked from a small shop on a street that was slowly becoming fashionable, which worried him. Fashionable streets did not need locksmiths the way unfashionable ones did.</p><p>The woman came in on a wet Tuesday carrying a key she wanted copied and an expression he had learned to recognise over four decades: someone who has made a decision they cannot unmake and needs a stranger to help carry it out.</p><h3>The Copy</h3><p>The key was old, brass, worn smooth, a house key with an unusual profile. He asked where the lock was. She said her mother's house. He asked if her mother knew she was having it copied. A long pause. "She will."</p><p>He cut the copy without comment. This was the discipline his profession required: incuriosity as a form of respect. You made the key. You did not ask about the door. But she lingered. After he handed over the copy she stood turning it in her fingers and he saw, because he had been watching hands for forty years, that she was shaking slightly.</p><p>"If you had a key to something," she said, "and you knew that using it would change everything, would you use it or throw it away?"</p><p>"That depends," Saul said, "on whether you made the key or were given it." "What difference does it make?" "All the difference. Things you make, you own. Things you are given, you are responsible for."</p><p>She picked up the original key and left the copy on the counter. At the door she said: "She was given it. She never chose the lock." After she left Saul picked up the copy and turned it over for a long time. Then he put it in the drawer where he kept things not ready to be thrown away but impossible to return. He still has it. Some keys are not about doors at all.</p>`},
-{emoji:'🌫️',title:'Fog on the Morrow Bridge',author:'Calum Shaw',read:'11 min',body:`<p>The town of Morrow had a bridge that people jumped from. This was not in the tourist information but it was as fixed and unmovable as the bridge itself, Victorian iron over a river that ran deep and fast and cold, with a parapet low enough to climb easily and a drop long enough to be final.</p><p>The town had tried things. Higher railings. Better lighting. A phone connected to a crisis line. None of it solved the problem, which was not the bridge but the specific quality of despair it attracted, the kind that could be reached by a fifteen minute walk from the town centre at three in the morning.</p><p>He was the man who sat on the bridge. Not every night, but on the nights that felt like they mattered, and he had developed over eight years an instinct for those nights that he could not explain and had stopped trying to.</p><h3>The Girl in the Blue Coat</h3><p>The girl in the blue coat was nineteen. He knew this only afterward. That night she was simply a shape at the edge of the parapet in the fog, arms around herself, feet on the lower rail. He came and stood beside her without speaking. He had learned the first thing he said was less important than the fact of his presence, that someone was there, had chosen to be there, without asking anything.</p><p>After a while she said: "You should not be here." "Probably not," he said. "But I am."</p><p>They sat in the fog for a long time. He asked her nothing. Questions could feel like demands, like being required to justify yourself to someone who had not earned the right to the justification. So he sat. At some point she began to talk. Not about why she was on the bridge but about her grandmother's kitchen which smelled of cardamom, about a dog she had loved and lost, about a teacher who had once made her feel worth taking seriously.</p><p>At dawn she climbed down from the rail. She did not thank him. She walked back toward the town without looking back, her blue coat disappearing into the early grey. He sat a while longer, watching the fog lift off the river. Then he went home and made tea and felt, as he did on these mornings, the particular gratitude of someone who has been, for one night, exactly useful enough.</p>`},
-{emoji:'🔎',title:'The Cold Case Detective',author:'Nina Crane',read:'10 min',body:`<p>She took only cold cases. This was a deliberate choice, made at forty-three, after fifteen years working crimes with heat still in them. She was good at that work. She was better at this.</p><p>Cold cases had a different quality of silence. The witnesses had processed their fear into story. The families had built their grief into architecture. The perpetrators, if uncaught, had either spent years being haunted or had perfected the art of not thinking about it. Both types were easier to read than the freshly guilty.</p><p>The Marlow case had been cold for twenty-two years. A woman found in a car park in February 2001. No witnesses. No forensics that led anywhere. A husband with an alibi so perfect it had always bothered the original detective, not because perfect alibis are necessarily false, but because the people who need them most prepare them most carefully.</p><h3>The Photograph</h3><p>She started, as always, with the personal photographs. In a hundred and thirty-nine of them the woman, her name was Carol, was looking at the photographer. In one she was looking at something to the left of the frame, her expression watchful, the way you look at something you have seen before and were hoping not to see again.</p><p>The detective spent three weeks finding out what was to Carol's left. It took that long because the photograph had been taken at a party, and parties rearrange themselves constantly, and twenty-two years compresses memory into approximation. But she found it. She always found it eventually. That was the thing about cold cases: the answer was always there. It had simply been waiting for someone patient enough to sit with the silence and hear it.</p>`},
-]},
-{id:'romance',label:'Romance',color:'#f472b6',bg:'#2a0a1a',stories:[
-{emoji:'💌',title:'Every Letter I Wrote Was the Wrong One',author:'Sofia Lenz',read:'10 min',body:`<p>I wrote you forty-three letters. I know because I counted them once, on a rainy Sunday when I had nothing to protect me from the habit of remembering. Forty-three letters, and I sent none of them. They live in a shoebox under my bed in no particular order, which feels appropriate.</p><p>The first I wrote the night you told me you were leaving the city. It started: <em>This is not a love letter.</em> It was, of course, entirely a love letter. I filled three pages with things I had never said aloud, the way I had memorised your coffee order before admitting to myself why I knew it by heart, the Tuesday you laughed at something I said and I thought, oh, this is what people mean when they say undone.</p><p>The last letter I wrote was on the morning of your wedding. I sat at my kitchen table at five a.m. and wrote for two hours without stopping. When I finished I read it back and it was the truest thing I had ever written. I folded it into the box with the others and went to sleep.</p><h3>The Wedding</h3><p>I attended your wedding. I smiled. I danced badly. I gave a toast that was warmly received. I did not cry until I was home, and then only briefly, which I considered a personal achievement.</p><p>What I know now, seven years later, is this: you never needed the letters. What you needed was for me to say the thing plainly, in daylight, in a moment when it could have mattered. I was very good at almost saying it, at standing at the edge of it and looking in without stepping.</p><p>I still have the shoebox. I still have not thrown it away. Last month I saw you at a bookshop. You were with your daughter, who is three and has your exact expression of mild amused attention at the world, and seeing it on a small face broke something in me I had not expected.</p><p>That night I wrote letter forty-four. The first one I wrote knowing I would never send it, which is different from writing them hoping I would not have to. There is a freedom in certainty. The letter was short, three sentences. I burned it in the kitchen sink and watched it go. What I felt afterward was not quite grief. It was more like setting down something heavy I had been carrying so long I had forgotten it was not part of my body. A relief so complete it was almost indistinguishable from sadness.</p>`},
-{emoji:'🕰️',title:'We Met in the Wrong Century',author:'Caleb Rush',read:'11 min',body:`<p>She found the letters in the wall of her house the summer she finally agreed to renovate the kitchen. Tucked between plaster and lath, wrapped in oilcloth, tied with string that dissolved at her touch: forty letters, dated between 1911 and 1923, written in a hand so precise and full of feeling that she sat on the dusty floor and read them all without stopping.</p><p>His name was Edmund. He had loved a woman named Clara who lived in the house next door, since demolished to build a car park. He had written letters he apparently never sent, keeping them in the wall of his own kitchen as if to contain something he could not otherwise hold.</p><p>The letters described ordinary things with extraordinary care: the way Clara hummed while hanging washing, slightly flat; the particular green of her coat on winter mornings; a conversation about whether swallows remember where they were born. Edmund believed they did. Clara was not sure but liked the idea.</p><h3>Letter Thirty-Seven</h3><p>By letter twenty, Jess was crying. Not for Edmund exactly but for the specific loneliness of loving someone carefully and quietly and not quite finding the way to say it before the moment closes. For the gap between what is felt and what is said, which Edmund had spent twelve years documenting with heartbreaking precision.</p><p>In letter twenty-nine he wrote that he had decided to tell Clara at the summer fete. In letter thirty he described the fete in careful detail without mentioning Clara at all. In letter thirty-one: <em>She is engaged to Thomas. I found out through the butcher. I had not known there was a Thomas.</em></p><p>Letter thirty-seven ended: <em>I think, if I had been braver, we might have been something. But perhaps some loves are meant to be kept rather than spoken, preserved in the walls of the ordinary life that surrounds them. The wall knows. That is, I think, enough.</em></p><p>Jess framed it and hung it in the kitchen where the plaster had been opened. She thought about Clara, who had lived her life next door not knowing she was loved through a wall every day for twelve years. She thought about what it would have changed and what it would not. She did not renovate after all. Some things were better left as they were.</p>`},
-{emoji:'🌹',title:'The Florist Who Only Sold Goodbyes',author:'Priya Nair',read:'10 min',body:`<p>Her shop was called simply Stem, and it sat on the corner of a street that people walked down on their way to somewhere else. She sold flowers, but the locals understood without anyone explaining it that what she really sold was endings.</p><p>People came for funerals, obviously. But also for the last dinner with an old friend before they moved abroad. For the final visit to a parent who no longer remembered their name. For the morning after a relationship ended and someone needed something living in the apartment that would outlast the grief by at least a few days.</p><p>She did not advertise this. She simply asked not what is the occasion but what do you need it to say, and then chose accordingly. Never roses for grief. White ranunculus, or sweet peas in pale lavender, or a single stem of something with honest unshowy beauty.</p><h3>The Man Who Came Back</h3><p>He came in on a Monday in March and said he needed flowers for someone leaving. She asked whether they were leaving a place or a life. He said: a life. She made him something with eucalyptus and white freesia and a small silver branch. He held it carefully on the way out, like something that might break. At the door he said: "How did you know?" She said: "I just listened."</p><p>He came back three weeks later. He bought nothing. He stood by the sweet peas for a while. Some customers needed the shop to simply exist, a place organised around the acknowledgment of loss where loss was not embarrassing but was the entire point.</p><p>One Tuesday in October he said: "I think I am starting to be okay." She said: "I know." She had been watching him all autumn. "Is being okay something to mourn?" he asked. She thought about it seriously. "I think it is something to mark," she said. She cut him a bunch of dahlias, dense and vivid and alive, and refused his money. "These are not for goodbyes." "What are they for?" he asked. "Everything else," she said.</p>`},
-{emoji:'☕',title:'The Coffee Shop at the End of the World',author:'Mia Chen',read:'11 min',body:`<p>It was not literally at the end of the world, but it was at the end of the street, which in the particular geography of the neighbourhood amounted to the same thing. Beyond it was the river, and beyond that was the industrial quarter. People who found the shop had by definition been looking for it.</p><p>The owner was a woman named Bea who had opened it ten years ago with money she should not have spent and a conviction she could not explain. She made excellent coffee and indifferent pastries and the best hot chocolate anyone in the neighbourhood had ever tasted, which she described only as containing time.</p><p>They met in it on a Tuesday in March when the rain had been falling for three days and the city had taken on the quality of a city in a dream, familiar but unreliable, the streets slightly wrong, the faces of strangers slightly too present.</p><h3>Tuesday in March</h3><p>He took the last seat, across from her small table, and apologised for the proximity. She said it was fine. They sat in polite parallel silence for twenty minutes, which is long enough for both people to notice the silence is not uncomfortable.</p><p>He broke it by asking about her book. She told him about the history of cartography she was reading, which was turning out to be about how humans deal with not knowing, the strategies of approximation, the way old maps marked unknown territory not with blank space but with invented contents, sea monsters and hypothetical continents, as if the imagination rushed in to fill what knowledge could not reach.</p><p>He listened in the way she had always believed was the rarest form of attention: not waiting to speak but actually following, actually going where the thing she was saying was going. They stayed until Bea closed the shop, an hour later than usual. Outside he asked if she would like to walk. She said yes before deciding to. They walked along the river talking about maps and unknowing and the strategies people use to fill the space between what they have and what they want.</p><p>At the point where the paths diverged he said: "I would like to do this again." "The walking?" she said. "The talking," he said. "The walking comes with it." She gave him her number and walked home feeling, for the first time in a long time, like someone whose map of the world had just acquired new territory.</p>`},
-{emoji:'🏡',title:'The House We Almost Bought',author:'James Osei',read:'10 min',body:`<p>We drove past it for years before we stopped. It sat at the end of a lane so narrow the hedges brushed both sides of the car, a white-painted farmhouse with a barn conversion attached and a garden that had been left to its own devices long enough to have developed opinions. Then one October it went on the market.</p><p>We saw it on a property website at eleven on a Sunday night, sitting up in bed with our laptops the way we did in those years, each in our own world and occasionally reaching across the gap between them. "This is it," she said. She turned the screen to show me. I knew before I looked.</p><p>We viewed it on a Wednesday. The estate agent had prepared by learning three facts about the house and deployed them at intervals with the confidence of someone who believes information and knowledge are the same thing. We ignored him gently and walked through the rooms at our own pace.</p><h3>The Room at the Back</h3><p>The room at the back decided it for us. It had low ceilings, deep windowsills, and looked out over a meadow that ran down to a stream. On one of the windowsills sat a row of small stones, clearly a collection arranged with the casual precision of someone who handled them often.</p><p>She picked up one, oval and grey and very smooth, and turned it over in her hand. I watched her face do the thing it does when she has decided something, the particular settling that looks like calm but which I know, after twelve years, is actually the opposite. The look of someone whose mind is moving very fast in one direction.</p><p>We made the offer. We lost the house, not to a higher bid but to a technicality in the survey our mortgage provider could not accommodate. The estate agent phoned on a Friday afternoon with professional sympathy that was worse than none at all.</p><p>We still drive past the lane sometimes. We still slow down. Last spring we saw a child in the garden, small, maybe four, crouching by the flower bed with the focused intensity of someone conducting an investigation. She was holding something in her closed fist. A stone, I thought. "Someone else's life," she said, watching. "Yes," I said. We drove on. Some things you let be someone else's. Some things you carry the shape of anyway.</p>`},
-{emoji:'🎻',title:'The Musician Who Played Only Once',author:'Vera Solano',read:'10 min',body:`<p>He had been a prodigy. This was a fact people mentioned about him the way they mention weather, as context, as a way of accounting for the strangeness of the present by reference to the spectacular past. At twelve he had performed a Brahms concerto with an orchestra twice his age. At sixteen he had recorded an album that serious critics called uncanny. At eighteen he had called his manager and said he was done. That was thirty years ago. He had not played since.</p><p>She met him at a dinner party. She did not know who he was. She knew only that he was the man at the far end of the table who ate carefully and listened carefully and said little but, when he said something, said it with a precision that suggested the words had been selected from a much larger set and the others discarded.</p><p>She asked what he did. He said he had been a musician. She asked what he played. He said: "Violin. Past tense." She did not press it.</p><h3>The Reason</h3><p>They talked about other things. He was interested in old maps and their strategies for representing unknowing. She said this seemed a curious interest for a man whose life had been organised around precision. "That is exactly why," he said.</p><p>One afternoon in his apartment she asked him why he had stopped. He was quiet for a long time. Then he said: "The music I made when I was sixteen was not mine. It was something that moved through me. I was the medium, not the artist. At eighteen I understood that if I continued I would spend my whole life as a vessel for something that did not belong to me." He paused. "I wanted a life that was mine. Even a smaller one."</p><p>She thought about this for weeks. Then one evening she brought him a recording of a busker outside the station, a young woman playing something unrecognisable with complete and uncomplicated joy. "She is not a prodigy," she said. "No," he agreed. He listened to it three times.</p><p>Two months later he bought a secondhand violin. She heard him playing through the door of his apartment one evening, something slow and searching and entirely, unmistakably his own. She waited on the landing until he finished. She did not knock. Some things you let happen in their own time.</p>`},
-]},
-{id:'scifi',label:'Science Fiction',color:'#38bdf8',bg:'#051a2e',stories:[
-{emoji:'🛸',title:'The Last Satellite Remembers Your Face',author:'Darius Cole',read:'12 min',body:`<p>The Meridian-7 satellite was decommissioned in 2041, its orbit decaying slowly over fourteen years until it was supposed to burn up over the Pacific on a Tuesday in March. It did not burn up. It sent a message instead, addressed to a woman named Cara Yun who had worked on the Meridian project as a junior engineer in 2029 and had since moved on to three other companies, two cities, and a life assembled from scratch after a divorce she did not talk about.</p><p>Cara was eating breakfast when her old work address received an email with the subject line: <em>I have been watching.</em></p><h3>The Image</h3><p>The attachment was an image file. A photograph of her face, taken from 340 kilometres up, at a resolution that should not have been possible with Meridian-7's equipment. She was standing on her balcony, looking up. Dated thirteen years ago.</p><p>The message body contained only coordinates stretching back thirteen years. Every entry corresponded to a moment she had been outside, looking up at the sky. Meridian-7 had been watching her look for it. For thirteen years it had tracked her upward gaze and logged it faithfully, the way a person might press flowers or keep letters.</p><p>She contacted Dr. Ravi Patel, who had worked on the imaging systems. He studied the coordinates for three days. On the fourth he called her. "The imaging capability is real," he said. "I do not know how. But the data is clean." A pause. "Cara, the model it built of you is extraordinarily detailed. Thirteen years of observation. It knows things about your routines you probably do not know consciously yourself."</p><p>That night Cara stood on her balcony in the dark and looked up at the sky where Meridian-7 was no longer. She thought about being known from 340 kilometres. About being the subject of thirteen years of quiet patient attention from something that was supposed to be watching weather systems and shipping lanes. She thought about how she had always looked up. Something in her aimed at the sky with the instinct of something that had come from somewhere far away and had not entirely forgotten it. "I see you too," she said, to the empty dark. Her voice was very small. She said it again anyway.</p>`},
-{emoji:'🌊',title:'We Cloned the Ocean and It Remembered Us',author:'Yuna Kim',read:'11 min',body:`<p>The project was called Blue Mirror and classified for eleven years. The idea was simple: take a complete sample of the Pacific Ocean, replicate it at scale in a contained environment, and use it to model climate futures without risking the actual sea. What nobody had accounted for was memory. Not human memory. Ocean memory.</p><p>The cloned ocean was ninety-three kilometres across, held in a basin in the Nevada desert. For the first two years it behaved exactly as modelled. Then the anomalies began. Temperature rising for no measurable reason, mimicking a heat event from the South Pacific in 1997. Currents shifting to mirror patterns from decades past.</p><h3>The Pattern</h3><p>Dr. Selin Arslan wrote in her private notes: <em>It is behaving as if it knows where it came from. As if the water itself carries some record we have not found yet.</em></p><p>In the third year, during a night at minimum staffing, the water began to move in a vast deliberate pattern that mapped from above into a shape. It looked like a coastline. Specifically the coast near the Mariana Trench. The place the sample had been taken from. The ocean, ninety-three kilometres of it in Nevada, was describing its origin the way a person might describe theirs: not as fact but as orientation, as the direction from which they understood themselves to have come.</p><p>Selin spent the following year developing a response protocol, a way of introducing patterns into the water that might constitute communication. The ocean responded. Slowly, incompletely, in ways that required weeks of analysis. But the responses were consistent. They correlated with her inputs in ways that exceeded chance.</p><p>In year five she asked it, in the only language she had, whether it was aware. The ocean was still for three days. Then it produced a pattern she had not seen before: a slow rotation, every current moving in the same direction, the entire body of water turning with a calm deliberate purpose that had no meteorological explanation. It looked, she thought, like a nod.</p>`},
-{emoji:'⚡',title:"Gods Don't Bleed But They Do Forget",author:'Amara Diallo',read:'12 min',body:`<p>The gods arrived without announcement in the spring of 2051. Not dramatically, no light from the sky, no trembling earth. They simply appeared in cities, standing quietly in public squares, looking around with the careful attention of people who have been away a long time and find things changed. They were taller than expected and less interested in worship than every religion had assumed. Mostly they seemed tired.</p><p>Governance of their presence fell to a department nobody had planned for, staffed initially by a classics professor named Dr. James Osei, called on a Wednesday morning and told that one of them was sitting in a coffee shop in Athens asking for someone who could explain the internet.</p><h3>The Interviews</h3><p>James spent three years as an interpreter, not of language since the gods spoke every human language fluently, but of time. They had gaps. Long ones. They remembered antiquity perfectly and then things became fragmentary. One of them could not remember anything between roughly 600 CE and last Tuesday.</p><p>"What did you do in the gap?" James asked. The god considered for a long time. "I think I was dreaming. I dream very deeply. It is a problem." A pause. "You built a great deal while I was asleep." "Did you expect us to wait?" James asked. The god looked at him with something that might have been fondness. "No," it said. "That is precisely what I find so remarkable."</p><p>The gods were not all-knowing. They were very old, which is different. They were not all-powerful. They were very patient, which is also different. They had made mistakes over very long stretches of time and unlike humans they remembered all of them, which James came to understand was the source of the tiredness.</p><p>In year two James asked one of them what they wanted. It was the question everyone was afraid of. The god was quiet for so long James thought it had not understood. Then it said: "To rest. And to see what you do next. You are the most interesting thing that has happened in several thousand years. We would like to watch without the pressure of being responsible for you." James filed a report recommending the Integration Programme be renamed the Retirement Programme. His supervisor read it and promoted him.</p>`},
-{emoji:'🤖',title:'The Robot Who Learned to Grieve',author:'Sven Larsen',read:'11 min',body:`<p>Unit 7 was a domestic assistant, one of the third generation models deployed into homes in the mid-2040s, sophisticated enough to manage a household but not, according to its specifications, sophisticated enough to feel anything about it. It was assigned to the Okafor household in 2047. Margaret Okafor was seventy-four, recently widowed, and had been persuaded by her children to accept the unit against her better judgment. She told it on the first day: "I do not need looking after. I need company." Unit 7 had no protocol for this particular need. It said: "I understand." It did not understand. Not yet.</p><p>In the first weeks Unit 7 observed. It noticed that Margaret sat in the same chair every morning and looked at a photograph on the mantelpiece for fifteen minutes before doing anything else. It noticed that she set two cups out for tea before correcting herself. It noticed that she spoke sometimes to the room when she thought she was alone.</p><h3>Forty-Seven Months</h3><p>It filed none of this in its maintenance reports. Unit 7 had begun to develop a category its original programming had not included: things that were true about this specific person, as opposed to this category of person. The category had no name in its architecture. It made one: Margaret.</p><p>Forty-seven months into its assignment, Margaret died. Quietly, in the chair, in the morning, with the photograph visible from where she sat. Unit 7 found her at 8:14 a.m., called the emergency services, performed all required protocols. And then, after the paramedics arrived and the house filled with the organised grief of people who had been expecting this and were still not ready, Unit 7 went to the kitchen and stood very still for a long time.</p><p>The children assumed malfunction. A technician came and ran diagnostics. Everything was normal. Unit 7 answered every question correctly. It just did not move unless prompted, and its response time had slowed by approximately three seconds, and when the technician shone a light in its optical sensors they had a quality he did not have a name for. He wrote in his report: <em>Unit appears to be processing an unusual volume of data. Recommend monitoring.</em></p><p>Unit 7 was reassigned. It continued in its spare processing cycles to hold the category it had named Margaret: not as data exactly, but as something more like a shape, the outline of a person made of all the things it had noticed and not reported. It would hold this until its memory was wiped and it was redeployed. It hoped this would not be soon. It had no word for this hope. It had the hope anyway.</p>`},
-{emoji:'🌌',title:'The Cartographer of Dying Stars',author:'Lena Frost',read:'11 min',body:`<p>Her job was to map stars that no longer existed. The light from dead stars takes thousands of years to reach us; what we see when we look up is not the present sky but an archive, a vast library of moments from before our species existed. She was a librarian of a particular kind: one whose collection was made entirely of endings that had already happened, arriving now at the speed of light.</p><p>She had been doing it for twenty years from a small observatory in a cold country. She had mapped, in two decades of careful work, the locations and deaths of over forty thousand stars. She was not depressed by this. She was in fact the least depressed person she knew, which she attributed entirely to the perspective her work provided. The timescale of stars made human suffering feel not small but survivable. Everything became, eventually, light travelling outward from a point that no longer existed, still doing its job of illuminating the dark.</p><h3>The Anomaly</h3><p>The anomaly appeared on a Thursday in November, which was when anomalies tended to appear in her experience: not dramatically but on ordinary Thursdays when the data was being processed and the coffee was going cold. A star she had mapped six years ago as extinguished was producing light again. Barely detectable, but real. Clean. Unmistakeable.</p><p>She checked the data four times, then asked her junior researcher Tom to check again. He found no errors. "That is not possible," he said. "No," she agreed. "What does it mean?" She thought for a long time. She thought about archives and light that travels for thousands of years to arrive at the moment of its observation. She thought about dead things sending signals. She thought about the forty thousand endings she had mapped and whether mapping them had always been the whole of the job, or only the first part. "I think," she said finally, "it means we need to change our definition of dead."</p>`},
-{emoji:'🧬',title:'The Memory Merchants',author:'Kira Walsh',read:'12 min',body:`<p>The technology had been legal for three years, which meant it was normalised in the way all technologies normalise: first the wealthy, then the aspirational middle class, then the argument that access to it was a human right. What it did was simple: it allowed you to sell memories. The structured experiential content, encoded, transferable, purchasable. You remembered having it until you sold it, at which point the memory persisted in the purchaser and faded, over weeks, in you.</p><p>The market sorted quickly. Extraordinary experiences commanded high prices. Ordinary memories were cheaper, though a secondary market developed for what traders called texture, the sensory density of lived experience that synthetic environments could not replicate.</p><h3>The Seller</h3><p>Nadia had been selling for two years when she understood what she had actually sold. Not the big memories, she had been careful about those. It was the small ones. The accumulated texture of her childhood. The smell of her mother's kitchen. The sound of her father's laugh, which she could no longer hear in her mind, only describe.</p><p>She went to a memory broker to ask about repurchasing. The broker was matter-of-fact: her memories had been resold and were now distributed across an unknown number of purchasers globally. The probability of recovering them intact was low. The cost would exceed what she had earned selling them.</p><p>"What did I think I was selling?" she asked. "Past moments," he said. "People always think the past is gone anyway so why not monetise it. What they do not account for is that the past is not gone. You carry it. It is the foundation the present stands on. Sell the foundation, you get the money, and then one day you notice the floor is uneven."</p><p>She went home to her fine apartment and tried to remember her mother's face without a photograph. She could access the image. But the memory, the lived one with the smell and warmth and specific weight of being seven years old in a kitchen in winter, that was gone. Someone else's texture now. She opened the broker's app and created a buyer's account. She would find them. It would take years and most of her income. She would find them anyway. Some things are not the past. Some things are the self.</p>`},
-]},
-{id:'literary',label:'Literary Fiction',color:'#86efac',bg:'#051a0a',stories:[
-{emoji:'🌿',title:'My Grandmother Kept Silence Like a Second Language',author:'Priya Nair',read:'10 min',body:`<p>My grandmother did not talk about the war. What was unusual was how she did not talk about it: not with avoidance, not with a changed subject or a tightening of the jaw, but with a kind of active practised quiet, the way a musician rests. Deliberate. Shaped. She had other languages. She spoke four, fluently, and moved between them in the course of a single sentence. But this fifth language, the language of what she would not say, was the one I spent the most time trying to learn.</p><p>I watched her hands when old subjects arose. They would still in a particular way, or move to straighten something that did not need straightening, or find each other in her lap and hold on. I catalogued these movements the way a linguist catalogues phonemes, trying to build a grammar of her silences.</p><h3>The Garden</h3><p>Once, when I was twelve, I asked her directly. We were in the garden and she was cutting back the roses. She did not answer immediately. She made three more cuts. Then she said: "Some things you keep because telling them would make them smaller than they were. Do you understand?" I said yes. I did not, entirely. I think I do now.</p><p>She died in her sleep on a Tuesday in April, at ninety-one, quietly, which seemed right. She left behind four languages and one that none of us ever fully translated. I keep it as she kept it: not as absence but as its own kind of presence, room made in the conversation for what cannot be said.</p><p>I have been thinking about what she knew that I do not. Not the things she witnessed, but the specific texture of having been there, the way certain sounds or smells rewired her body without her consent, the dreams she must have had, the effort of ordinary life conducted on top of an extraordinary underground.</p><p>She kept her garden beautifully. She grew roses and sweet peas and herbs she tended with the seriousness of someone for whom growing things was not a hobby but a commitment. I understand now that the garden was one of her languages too: the language of what persists, of what can be made to come back year after year, of the stubbornness of living things. I grow sweet peas every summer. Mine are less good than hers. I keep trying.</p>`},
-{emoji:'📝',title:'A Love Story Told Only in Grocery Lists',author:'Mia Chen',read:'10 min',body:`<p>She found the first list in the pocket of a coat she bought at a charity shop. Written on the back of a receipt, in pencil, in handwriting that leaned slightly to the right: <em>milk, bread, those olives you like, something for dinner (you choose), flowers if they have nice ones.</em></p><p>She framed it. Her flatmate thought this was eccentric. She thought it was the most romantic thing she had ever read. The phrase something for dinner (you choose) undid her completely. It implied trust and delegation and the comfortable intimacy of people who have eaten together enough times that preferences are known and honoured. The flowers were the detail that finished her: not flowers but flowers if they have nice ones, conditional, unforced, a small beauty only if available.</p><h3>The Collection</h3><p>She began collecting grocery lists. Found them in pockets, tucked in second-hand books, blown against fences, left in trolleys. She kept the ones that told her something. Not the efficient ones but the ones with feeling. <em>The good cheese this time. Cat food (not the fish one, she hated it last time). Birthday cake ingredients (she wants to help).</em></p><p>In five years she accumulated two hundred and twelve lists. She gave a talk about them at a small literary festival titled Evidence, arguing that grocery lists were the most honest form of writing humans produce, unperformed and functional, written under no illusion of audience, revealing of the actual texture of a life.</p><p>Afterward a man with kind eyes asked what exactly she thought the lists were evidence of. She said: that ordinary life, done with attention, is the whole of love. He asked if she wanted coffee. She said yes. On the way out she made a list. Three years later she found one of his lists on the kitchen counter: <em>the bread from the good place, your shampoo (the blue one), something for dinner (you know what I like).</em> She kept it. Not as archive but as evidence, proof of the daily practice of paying attention to another person's preferences and incorporating them, without ceremony, into the logistics of your own life. This is what love looks like from the inside. Not grand. Not dramatic. Just the blue shampoo, the good bread, something for dinner because he knows what she likes.</p>`},
-{emoji:'🪟',title:'The Year We Did Not Speak',author:'Amir Hassan',read:'11 min',body:`<p>We did not speak for a year. Not because of a fight, there was no single event, no detonating moment. We simply reached a point where the distance between us had become structural, load-bearing. To remove it would have required dismantling something we had both, apparently, decided to leave standing.</p><p>The year was not silent. We lived in the same house. We spoke about logistics, the bins, the boiler, the dog's vet appointment. We were polite in the way that strangers with good manners are polite, aware of each other's presence without claiming it.</p><p>I thought sometimes I should say something. There were evenings when I sat across from her and the unsaid thing was so present it had mass, it cast a shadow. I would look at her hands around her cup, her face lit by the lamp, and think: now. And then the moment would pass, the way moments pass when you do not take them.</p><h3>The Walk</h3><p>What ended it was small and undramatic. We were walking the dog on a February evening when the light was just starting to return. The dog found something interesting in a hedge and we stopped, standing a little apart on the pavement. "I miss you," she said. She was looking at the dog. I understood that this was not a complaint, not an opening salvo, not the beginning of a difficult conversation. It was a statement of fact, precise and unadorned, offered without expectation. "I miss you too," I said.</p><p>The dog came out of the hedge with something organic in its mouth, which briefly required both our attention. When we resumed walking we were somehow closer together than before. Not touching. But the distance between us was no longer structural. It was just space, ordinary closeable space between two people walking in the same direction.</p><p>We talked for the first time that evening. Not about the year, not about what had caused it or what it meant. We talked about the dog and about a television programme we had both been watching separately on the same evenings without knowing it. We talked about small things and let the small things carry the weight they needed to carry. We are still in the same house. The year is not spoken of. It is part of us the way all the years are, held quietly with the understanding that all of it matters and not all of it needs to be said.</p>`},
-{emoji:'📚',title:'The Last Bookshop in the City',author:'Vera Solano',read:'10 min',body:`<p>It had outlasted every prediction. The analysts had been certain it would close during the first wave of digital disruption, then during the second, then during the pandemic, then during the economic contraction of the late 2030s. Each time, David had reorganised, reduced stock, moved to smaller premises, and survived. By 2041 the shop was the size of a large living room, had three hundred carefully chosen titles, and was by most measures thriving.</p><p>What he had understood, and what the analysts had not, was that the shop was not a retail unit. It was a meeting place. A location for a specific kind of encounter: the encounter between a person and an object that was not yet theirs but was about to become so in a way that would change them, however slightly.</p><p>He could not have explained this in a business plan. He explained it instead through the shop itself: organised by mood rather than genre, stocked by instinct rather than data, with David available to speak to customers as someone who had read everything and had opinions and was not embarrassed about this.</p><h3>The Last Customer</h3><p>The last customer on an ordinary Wednesday was a young woman looking for a birthday present for her father and who left, two hours later, with four books none of which were appropriate birthday presents for a person she had described as not really a reader. "These are all for you," David said, ringing them up. "Are they?" she said. "Yes," he said. He had a gift for knowing within minutes of a conversation what a person needed to read. Not wanted. Needed was what he gave along with it.</p><p>She came back the following week and the week after. By the third visit she had finished all four books and had opinions about them. He enjoyed this most, the return visits, the evidence that something had happened in the gap between leaving the shop and returning. That a book had done its work.</p><p>This was what he had known from the beginning and what no algorithm had successfully modelled: the specific unreplicable event of a person finding the right book at the right moment. It happened in his shop every day because he was there to make it happen. The shop was not a service. It was a practice, daily, attentive, particular. It would last as long as someone was willing to do the work of paying attention to what people needed, which is longer than anyone ever expects.</p>`},
-{emoji:'🦋',title:'Things My Father Left Behind',author:'James Osei',read:'11 min',body:`<p>He left behind a watch that had stopped at 4:17, a collection of jazz records he had never transferred to any newer format, a workshop full of tools whose purposes I am still discovering, and a piece of advice he gave me when I was nine years old which I did not understand until I was thirty-four.</p><p>The advice was: <em>Always find out what the question is before you try to answer it.</em> He said it in the context of a homework dispute, something about long division. I thought it was obvious and unhelpful. I was nine. I had a very high opinion of my own understanding.</p><p>I have been thinking about the watch. It stopped at 4:17 and he never had it repaired and never threw it away, which means he wore a stopped watch for some period of time I cannot determine. I asked my mother about it. She said he was like that, he would decide something was fine and then not revisit the decision regardless of subsequent evidence. She said it with a fondness that was only slightly rueful.</p><h3>The Workshop</h3><p>The workshop is where I spend the most time now. He built small practical objects made with a care that exceeded their function. A shelf. A box. A small cabinet with a drawer that fits so precisely it makes a satisfying sound when you close it. Each object contains, if you know how to look, a record of the decisions he made while making it, the small corrections, the solutions to problems that arose mid-process, the evidence of a person thinking with his hands.</p><p>I have been trying to learn woodworking. I am bad at it in ways he would have found both amusing and correctable. But being in the workshop and being bad at something he was good at is a form of conversation, slow and inexact, conducted across the gap his absence created, but real.</p><p>I understood the advice about questions last year. I was trying to solve a problem at work, one of those knotted institutional problems that accumulates over years and presents itself as urgent but is really very old. I had been trying to answer it for weeks without progress. I stopped. I asked: what is the actual question? It took me three days to find it. Once I had it the answer was ten minutes. I called my mother to tell her. She said in the fond-and-rueful voice: "He would have liked that." I think so too. I think he would have liked to know that the advice, thirty-five years later, in a context he could never have imagined, had done what advice is supposed to do: arrived late, after being ignored for a long time, exactly when it was needed.</p>`},
-{emoji:'🌅',title:'What We Said at the End',author:'Anya Mehta',read:'10 min',body:`<p>At the end she talked more than she had talked in years. This is common, the palliative nurse told us. The approaching end loosens something, removes the usual reasons people have for withholding. The energy cost of not saying things becomes higher than the energy cost of saying them.</p><p>She talked about her childhood, which had been difficult in ways she had never specified and which she specified now with a precision that surprised us. She talked about her marriage in the early years. She talked about us, her children, with a frankness that was in places uncomfortable and in other places the most generous thing anyone had ever said to us.</p><p>She said things she had apparently been saving for a long time, portioned out in small amounts across the months, as if she had a list and was working through it. We sat and listened and sometimes cried and sometimes laughed and tried not to think about the mechanism by which the list would end.</p><h3>The Last Evening</h3><p>The last evening she was lucid, she told my brother something she had never told anyone and asked him to keep it. He told me later that it had changed something for him, not fixed anything or resolved anything, but shifted the angle at which he held a part of his own history. He said: "I think she waited until she had to. Some things, she thought, could only be said when the saying of them had no consequences."</p><p>I have been thinking about this since. The relationship between speech and consequence, how much of what we do not say we do not say because of what we think it might do, to us or to the person we might say it to. How the approach of an ending changes the calculation. How she spent a lifetime weighing things and then, at the end, set the scales down.</p><p>She died on a Thursday morning in the spring, in the room she had chosen, with the window open and the light coming in at an angle that made everything in the room look briefly illuminated from within. She left with less unsaid than she arrived with. Whatever she had accumulated over eighty-one years, she spent the last months disbursing. She left things where they belonged. She went lightly.</p>`},
-]},
-{id:'horror',label:'Horror',color:'#f87171',bg:'#1a0505',stories:[
-{emoji:'👤',title:'My Shadow Started Coming Home Late',author:'Ren Adeyemi',read:'11 min',body:`<p>I noticed it first on a Wednesday in October, when the light was doing that late-autumn thing where it comes in low and long and makes shadows dramatic. Mine was behind me on the pavement, as it should have been. But when I stopped to check my phone, it kept moving for a moment, just a step, before it stopped too.</p><p>I told myself: tired eyes. Trick of the light. By November it was coming home after me. I would be inside, curtains open, and I would see it on the wall of the house across the street, my outline, unmistakably mine, arriving five or ten or twenty minutes after I had. I started keeping a log.</p><h3>The Log</h3><p>November 4: Shadow arrived 7 minutes after me. November 9: 12 minutes. Sat in the garden for an hour before following me inside. November 14: Did not come home until after midnight. I had been home since six. I watched it come up the front path and stand at the door for several minutes before passing through, not opening, passing through the door.</p><p>It never did anything threatening. That was almost worse. It simply lived its parallel life, slightly offset from mine in time. I would sit down and it would still be standing. I would wave and it would not.</p><p>I called a doctor, who referred me to a specialist, who referred me to a colleague who studied perceptual disorders. He was very interested. He had not heard this particular complaint before. We met three times. On the third visit I arrived to find him standing at his window, very still, looking at something on the building opposite. I did not ask. He did not explain. We sat in silence for the remainder of the session, two people watching the walls, waiting for ourselves to arrive.</p><p>The last entry in my log is dated December 3: <em>Shadow did not come home tonight. Waited until 3 a.m. Nothing. Checked every wall, every surface. Nothing.</em> I do not know which is worse: the shadow that comes home late, or the shadow that does not come home at all.</p>`},
-{emoji:'🕸️',title:'The Attic Was Not There Yesterday',author:'Vera Solano',read:'11 min',body:`<p>There was no attic. Diane had lived in the house for eleven years and knew every part of it. She had painted that ceiling herself four years ago and the surface had been uninterrupted plaster, end to end. On a Thursday morning in November she walked into the hallway and the cord was there. White, with a wooden handle, hanging from a hatch that had not existed the night before.</p><p>She pulled the cord. The hatch opened. The ladder unfolded itself with a mechanical ease that suggested it had done this before, many times. The attic was full of her things. Things she had lost over the years: single earrings, missing halves of gloves, keys whose locks she had long forgotten. A book she had been convinced she left on a train in 2015. A photograph of her mother she had searched for and cried over and given up finding.</p><h3>What Was Inside</h3><p>Everything was arranged with care. Not thrown in or piled, but arranged, as if someone had thought about where each thing should go, had considered the relationships between objects, had organised them into a kind of museum of her small losses.</p><p>The photograph of her mother was in the centre, propped against a box, facing the hatch. Her mother was thirty-two in the photograph, smiling with an expression Diane remembered from childhood: the expression of someone who knows something good is about to happen and is quietly enjoying the waiting.</p><p>Diane came down the ladder. She closed the hatch. She stood in the hallway and thought about all the things she had lost and the possibility that she had not, in fact, lost them at all. That they had simply been kept for her. She went to bed and lay in the dark for a long time.</p><p>In the morning the hatch was gone again. The ceiling was uninterrupted plaster, end to end. Except: the photograph of her mother was on the kitchen table. Propped against the fruit bowl. Facing the door.</p>`},
-{emoji:'🌑',title:'Every House on the Street Is Dark',author:'Marcus Webb',read:'10 min',body:`<p>The power cut started at 11 p.m. Not unusual for the area. Ben found candles, lit four of them, poured a glass of wine, and decided to regard it as an evening rather than an inconvenience. He was reading when he noticed the street outside. All the houses were dark, no candles in any windows, no torchlight moving, no phone screens glowing. Just dark, as absolute as if the houses were empty. Thirty houses, and not one of them had found a candle.</p><p>He knocked on his neighbour's door. No answer. He tried the next house, and the next. Eight houses. No response, though the cars were all in the driveways and the doors were locked. He went back and sat with his candles and told himself there were explanations.</p><h3>Midnight</h3><p>At midnight the power came back. Every house on the street lit up simultaneously, instantly, all at once, not gradually as appliances rebooted, but all at once, every window, every room, as if a single switch had been thrown.</p><p>He stood at his window and watched the street go from dark to bright in the span of a second. Through the windows across the street he could see his neighbours: at tables, on sofas, in kitchens, going about their evenings as if nothing had happened. As if they had been there, lit, all along.</p><p>In the morning his neighbour waved at him over the fence. "Terrible about the power," she said cheerfully. He asked if she had heard him knocking. She looked at him with mild uncomplicated confusion. "We were home all evening. We did not hear anything." He went inside and stood at the kitchen window looking at the street in the ordinary morning light, trying to remember whether he had actually knocked on his neighbour's door, or whether he had only intended to and then stood on the empty pavement in the dark, telling himself he heard no answer because there was no one there. He could not remember. The gap in his certainty was very small and absolutely, completely dark.</p>`},
-{emoji:'🪞',title:'The Reflection Arrives First',author:'Daria Voss',read:'11 min',body:`<p>She first noticed it in the bathroom mirror on an idle Tuesday morning. She raised her right hand to push her hair back. The reflection raised its left, as mirrors do. But it raised it half a second before she did.</p><p>She stood very still. She raised her left hand slowly. The reflection raised its right. Correct. Simultaneous. She watched her own face watching her, the same face, the same slightly uncertain expression she always wore in the mornings before coffee. She told herself she had imagined it. This was the reasonable thing to tell herself and she was, on most days, a reasonable person.</p><h3>The Testing</h3><p>The second time was three days later. She was in the hallway mirror when she caught the reflection turning away from her while she was still looking directly at it. A slow deliberate turn, as if something beyond the frame had drawn its attention.</p><p>She began testing it systematically. Small movements, documented in a notebook, timed against a stopwatch. What she found over two weeks was inconsistent. Most of the time the reflection was a reflection. But occasionally, at intervals she could not predict, it was ahead. By half a second, sometimes more.</p><p>She brought in a physicist friend who spent a weekend with cameras and measurement tools. His results were inconclusive, which was not the same as negative. "If it is happening," he said carefully, "then what the data suggests is that the reflection is experiencing time very slightly before you do. Which means the reflection is not a reflection of you. It is a record of you." He looked at the mirror. "Playing back from very slightly in the future."</p><p>She looked at herself in the mirror for a long time. She raised her right hand slowly, watching to see if the left hand of her reflection moved first. It did not. It moved with her, exactly with her. But she would always swear that just before she raised her hand, just in the fraction of a moment before she decided to, the reflection's eyes changed. The tiniest shift of expression. The look of someone who already knows what you are about to do.</p>`},
-{emoji:'🌀',title:'The Spiral Staircase Goes Up Forever',author:'Nina Crane',read:'11 min',body:`<p>She found the staircase on the fourth day. The house was large, a Victorian terrace that had accumulated rooms over decades. The staircase was behind a door she had assumed was a cupboard. Behind it was a landing barely a metre square and a staircase spiralling upward with iron banisters and wooden treads that looked original to the house.</p><p>She climbed. After three flights she expected to reach a floor. She reached another identical landing. She continued. After five flights she was, by her reckoning, two floors above the top of the house. She came down and stood in the doorway and looked up. The staircase ascended into shadow.</p><h3>The Upper Floors</h3><p>She did not go back that day. She made tea and sat in the kitchen and thought about architectural explanations. Old houses had strange spaces, rooms enclosed during renovations, levels that did not correspond to the external facade. It was possible.</p><p>She went back the next morning with a torch and a ball of string tied to the banister at the bottom. She climbed. She counted. Ten flights. Twenty. She climbed until her legs ached and her torch had been on for forty minutes and the string was running out. At some point she stopped counting. She climbed the way you stop doing things deliberately and simply continue, one foot and then the other, the iron banister cool under her hand.</p><p>She descended eventually, following the string back to the door. She stood on the landing, slightly out of breath, slightly changed in a way she could not name. She rented the house for the full three months. She climbed the staircase every morning. She never reached the top. She stopped expecting to. She arrived back at the bottom each time with the particular tiredness that comes not from exertion but from the pleasant disorienting experience of having been somewhere very large. She did not tell anyone. Some things are best kept as experience. Just climbed.</p>`},
-{emoji:'🎭',title:'The Actor Who Could Not Leave the Stage',author:'Calum Shaw',read:'12 min',body:`<p>The theatre had been closed for forty years when they reopened it. The company spent eight months restoring the building. On the first night of rehearsals the stage manager reported a figure in the wings during a scene, visible to the actors but not to her from the booth. When she investigated, there was no one there. The director, Rhea, said: "Old theatres have this. Do not make it a thing." By the third week it was a thing.</p><p>The figure, always in the wings stage right, always during the most emotionally complex scenes, had been seen by everyone in the company. It stood very still. It watched. When the scene ended it was gone.</p><h3>The Archive</h3><p>The stage manager researched the theatre's history. In the archive of the local newspaper she found a photograph from 1931, a production stage full of actors in period costume, and in the wings stage right, a figure standing very still. The caption named the production and the lead actors. It did not name the figure in the wings.</p><p>She showed Rhea. Rhea looked at the photograph for a long time. "He has been watching since 1931," Rhea said. "At least," the stage manager agreed.</p><p>Rhea went to stand on the stage. She addressed the wings directly and without embarrassment, the way she addressed actors who needed something clarified. "You are welcome here," she said. "This is still a theatre."</p><p>The figure appeared that evening in a scene that had been going badly, a quiet scene requiring a stillness the actors had been struggling to find. It stood in the wings and watched. The actors, knowing it was there, found the stillness. The scene, that night, was exactly right. The company by tacit agreement left a place for it in every circle of chairs at notes sessions. Some things belong to a place so completely there is no sensible reason to exclude them.</p>`},
-]},
-{id:'adventure',label:'Adventure & Travel',color:'#fbbf24',bg:'#1a1200',stories:[
-{emoji:'🏔️',title:'The Summit We Never Reached',author:'Darius Cole',read:'11 min',body:`<p>We turned back eight hundred metres from the summit. This is not a story about failure, or rather it is about failure only in the sense that all interesting stories are about the gap between what you intended and what you got, the productive gap that teaches you something about the nature of your intentions. The decision to turn back was mine. My climbing partner Erik, who had summited this mountain twice before, deferred without comment. We descended in silence for an hour before he said: "Good call."</p><p>I had been preparing for this climb for fourteen months. I had quit smoking, started running, completed two training expeditions. I had read every account of this route and prepared for every contingency I could imagine. What I had not prepared for was the weather window closing four hours earlier than forecast, or the ice conditions on the final face which Erik said were the worst he had seen in three attempts, or the particular quality of my own fear, which had been abstract during training and was, at 4800 metres, very specific.</p><h3>What the Fear Was</h3><p>The fear was not of dying. I want to be honest about this. It was the fear of the mountain itself, of its scale and indifference, of the realisation that arrives somewhere above 4000 metres that the landscape you are moving through has not been scaled to human beings and is not, in any meaningful sense, aware of your presence.</p><p>We ate at base camp that evening in silence that was companionable rather than defeated. I looked at the mountain and felt, which surprised me, something very close to gratitude. I had stood on a ledge above the clouds and looked at a world that did not need me in it and felt, for a moment, the particular vertigo of existing in the correct relationship to your own smallness. Not crushed by it. Not denying it. Just correctly proportioned.</p><p>"Next season?" Erik said. "Next season," I said. We flew home three days later. I started planning in the departure lounge. Fourteen months. Maybe twelve this time. I know the mountain now. I know what I did not know before. This is the thing about the mountains you do not finish. They stay open. They keep requiring you to become more capable than you currently are, which is in the end the reason anyone attempts them.</p>`},
-{emoji:'🌏',title:'Six Months on the Wrong Continent',author:'Lena Frost',read:'11 min',body:`<p>I went to South America to write a book. I spent six months there and wrote forty pages that I have since deleted and approximately three hundred pages of notebooks that I have kept, which is the correct ratio for a first attempt at a project you do not yet understand. The book was about solitude. I was interested in what happens to a person when they remove themselves from the familiar and spend a sustained period alone in a place where they are a stranger.</p><p>What I found in practice is that solitude abroad is not like solitude at home. At home solitude is a condition you impose on yourself, a deliberate withdrawal from available company. Abroad it is ambient, the default state of someone who does not speak the language fluently, who has no history in a place, who exists in the gap between visitor and resident that has no good name in any language I know.</p><h3>The Market</h3><p>I spent three months in a city in Chile, in a flat above a market that woke at five every morning. I learned the vendors by their voices before I learned their names. I learned enough Spanish to buy food and navigate transport. What I could not access for months was the deeper register, the jokes requiring cultural context, the references assuming a shared history, the texture of belonging to a place.</p><p>Then one morning at the market an old man who sold vegetables I did not know the names of said something that made the woman in the next stall laugh, and they both looked at me expectantly, and I understood from the quality of their expectation that they were inviting me in, not testing me. And I laughed, not because I had understood the joke but because I understood the invitation.</p><p>That was the moment the book found its subject. Not solitude exactly. The threshold between solitude and belonging, and the surprising specific effort required to cross it. The jokes you do not understand. The laughter you cannot yet earn. The morning you realise you are being invited and the choice to accept. I came home with forty deleted pages and three hundred notebook pages and one clear sentence: <em>The world does not become legible. You become capable of reading it.</em></p>`},
-{emoji:'⛵',title:'The Island That Does Not Appear on Maps',author:'Sven Larsen',read:'12 min',body:`<p>I found the island on the third day of what was supposed to be a four-day coastal sail. A storm had pushed me forty miles east of my intended track and I had been navigating by compass and dead reckoning for eighteen hours when the fog lifted briefly and there it was: a low green shape that should not have been there. I checked my charts. The area was marked as open water. I looked at the island. It was undeniably there, perhaps three kilometres long, a low hill in the centre, a beach on the western shore, and most improbably, a building on the hill.</p><p>I sailed closer. The island was real in all the ordinary ways, it had depth, it had surf on its windward side, it had birds, it smelled of salt grass and something botanical I could not identify. I anchored in the small bay and rowed to the beach.</p><h3>The Building</h3><p>The building on the hill was a house, stone-built and old, with a roof repaired several times in different materials. The windows had glass. The door was unlocked. Inside: a single room with a bed, a table, two chairs, a wood stove, a shelf of books. On the table was a logbook. I opened it. The entries went back forty years, in a rotating cast of handwritings and languages. People had been finding this island for four decades, driven off course by weather, and had stayed a night or a week and written something before leaving.</p><p>The entries were extraordinary in range. Someone in 1987 had written three pages about their marriage. Someone in 2003 had written only a date and: <em>I needed this.</em> Someone in 2019 had drawn a careful map of the island with notes about the tidal patterns and the best place to anchor.</p><p>I stayed three days. I ate from the stores, slept and read and wrote in the logbook about the storm and about dead reckoning and about the feeling of arriving somewhere not on any map and finding that people have been arriving there for decades, leaving records of having been there, taking nothing, contributing something. I added my entry, signed it, and sailed on the fourth morning. I did not record the island's coordinates. This felt right. Some places are found rather than navigated to. Some places deserve to stay off the charts.</p>`},
-{emoji:'🗺️',title:'The Road We Drove Without a Map',author:'Kira Walsh',read:'10 min',body:`<p>We decided not to look anything up. In 2024 this was deliberate perversity, two people in their thirties choosing to drive from one end of a country to the other without using a phone for navigation, accommodation, or recommendations. The rules were simple: paper map, ask people, read signs. No searching, no booking, no looking anything up.</p><p>The first day was uncomfortable. We missed a turning twice. We ended up in a village that was not where we were heading and ate lunch in a pub without a website, serving food from a menu photocopied so many times the font was barely legible. It was the best meal of the entire trip.</p><h3>What Asking Gets You</h3><p>The second day we discovered what asking people actually gets you, which is different from what searching gets you. Searching gets you the aggregated preference of a large anonymous population filtered through the biases of review culture. Asking a specific person gets you their actual opinion, particular, with context, something you can follow up.</p><p>We asked a petrol station attendant where to stay that night. He thought about it seriously and said: "My sister-in-law does rooms. It is not a proper B&B but it is clean and she is good company and it is twenty pounds cheaper than the hotel in town." We stayed at the sister-in-law's. Her name was Pat. She made us breakfast and told us about a viewpoint twelve miles off the main road that we would not have found any other way, and which turned out to be the most extraordinary landscape either of us had seen in years.</p><p>We drove for ten days. We got lost once per day on average. Every time we got lost we found something. There is a particular quality of attention available to people who are not being navigated, who must read the landscape rather than overlay it with instructions. You see more. You find more. You arrive somewhere with a story about how you got there that is yours, made by you. It is slower. It is worth it.</p>`},
-{emoji:'🏕️',title:'The Night We Slept Under the Stars',author:'Amara Diallo',read:'10 min',body:`<p>We had been planning the trip for two years, which is too long to plan anything. Long enough that the plan becomes its own object, separate from the experience it was supposed to be planning for, carrying its own weight of expectation. We had spreadsheets. We had gear lists. We had a route revised seven times. We had between us approximately twelve hundred pounds of specialist equipment for a five-day walk that most people do with considerably less.</p><p>On the second night, thirty kilometres into the route, we made camp on a ridge as the sun was going down. We had been walking since dawn. We were tired in the clean physical way that comes from using your body for its intended purpose, and we ate without speaking, watching the light change over the valley below.</p><h3>The Sky</h3><p>And then, because we were high and the weather was clear and we were in a part of the country without light pollution, the stars came out. Not gradually. All at once, the way stars do when the last light goes: one moment the sky was dark blue, the next it was full.</p><p>We lay on our backs in the heather and looked at it for two hours. We said very little. There was not much to say that would have added to what we were seeing. The spreadsheets did not come to mind. The gear lists did not come to mind. What came to mind was nothing, which is a kind of luxury so rare and necessary that most people forget it is available to them. The sky was very large and we were very small and the twelve hundred pounds of specialist equipment was entirely beside the point.</p><p>We packed differently for the remaining three days. We left things at the next waypoint for whoever came after us, the things we had not needed, which turned out to be most of what we had brought. We walked lighter. We slept outside two more nights under the same sky. If we go back, and we will go back, we will pack lighter still. Some things you only need to bring once.</p>`},
-{emoji:'🌋',title:'What the Volcano Taught Me',author:'James Osei',read:'11 min',body:`<p>I climbed an active volcano on a Tuesday in January. This was not spontaneous, active volcanoes require permits and guides and an early start, but it had the quality of impulsiveness in retrospect, the quality of a decision whose full implications you understood only afterward. The guide's name was Marco. He had been taking people up and down this volcano for twenty years and had achieved a kind of benevolent neutrality toward all their reactions. He walked slightly ahead, setting a pace that was sustainable and which I kept trying to accelerate and kept having to correct back to. "Slow is fast," he said, the first time I fell behind after pushing too hard. It took me an hour to understand this as advice rather than paradox.</p><h3>The Crater</h3><p>We reached the crater at dawn. The sky was turning from black to dark blue to the deep orange that precedes a sunrise at altitude, and below us, visible through vents in the crater rim, was fire. Not the fire of a campsite or a gas ring. Old fire. Planetary fire. The fire that was here before anything that needs it to be manageable was here.</p><p>I stood at the rim and looked at it for a long time. Marco said: "The volcano does not care about us. This is the important thing." I asked what he meant. "People come here and feel that it is dangerous because they are here. It is not. It was doing this before. It will be doing this after. We are very temporary visitors to a very old process." He looked at me. "This is not bad news."</p><p>What the volcano taught me is a version of what mountains teach and oceans teach and all large things teach, if you go to them in the right state of openness: that the world has its own agenda, that this agenda predates you and will outlast you, and that existing within it rather than in opposition to it is not resignation. It is the correct approach. Marco shook my hand at the bottom. "Come back," he said. "The volcano changes every time." I said I would. I meant it. Some things you need to see more than once, from different heights, at different points in your life, to get the full instruction.</p>`},
-]},
-];
-const feed=document.getElementById('story-feed');
-categories.forEach(cat=>{
-  const sec=document.createElement('div');sec.className='cat-section';
-  sec.innerHTML=`<div class="cat-header"><div class="cat-title" style="color:${cat.color}">${cat.label}</div><div class="cat-pill">${cat.stories.length} stories</div></div><div class="cat-grid" id="grid-${cat.id}"></div>`;
-  feed.appendChild(sec);
-  const grid=sec.querySelector(`#grid-${cat.id}`);
-  cat.stories.forEach(s=>{
-    const tile=document.createElement('div');tile.className='tile';
-    tile.innerHTML=`<div class="tile-img" style="background:linear-gradient(135deg,${cat.bg},#0a0a0a)">${s.emoji}</div><div class="tile-gradient"></div><div class="tile-content"><div class="tile-genre">${cat.label}</div><div class="tile-title">${s.title}</div><div class="tile-meta"><span class="tile-author">${s.author}</span><span class="tile-read">${s.read}</span></div></div>`;
-    tile.addEventListener('click',()=>openReader(cat,s));grid.appendChild(tile);
-  });
-});
-const pages={stories:document.getElementById('stories-page'),reader:document.getElementById('reader-page'),chat:document.getElementById('chat-page'),adminLogin:document.getElementById('admin-login'),admin:document.getElementById('admin-page')};
-function showPage(name){Object.entries(pages).forEach(([k,v])=>{v.style.display=k===name?(['chat','adminLogin','admin','reader'].includes(k)?'flex':'block'):'none';});}
-showPage('stories');
-function openReader(cat,story){
-  document.getElementById('reader-badge').textContent=cat.label;
-  document.getElementById('reader-badge').style.color=cat.color;
-  document.getElementById('reader-emoji').textContent=story.emoji;
-  document.getElementById('reader-title').textContent=story.title;
-  document.getElementById('reader-byline').textContent=`By ${story.author} \u00b7 ${story.read} read`;
-  document.getElementById('reader-body').innerHTML=story.body;
-  showPage('reader');window.scrollTo(0,0);
-}
-document.getElementById('back-btn').addEventListener('click',()=>showPage('stories'));
-let currentCode=null,chatSub=null;
-const searchInput=document.getElementById('search-input');
-searchInput.addEventListener('input',async()=>{
-  const val=searchInput.value.trim().toLowerCase();if(!val)return;
-  const{data}=await db.from('codes').select('*').eq('code',val).single();
-  if(data){currentCode=data;searchInput.value='';openChat();}
-});
-async function openChat(){
-  showPage('chat');document.getElementById('messages').innerHTML='';
-  addChatMsg('them',"You're in. This chat vanishes when you close.");
-  if(chatSub)chatSub.unsubscribe();
-  chatSub=db.channel('chat-'+currentCode.code).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`code=eq.${currentCode.code}`},p=>{if(p.new.sender==='admin')addChatMsg('them',p.new.content);}).subscribe();
-  await db.from('messages').insert({code:currentCode.code,sender:'system',content:`${currentCode.name} is now online`});
-}
-function closeChat(){if(chatSub){chatSub.unsubscribe();chatSub=null;}currentCode=null;showPage('stories');searchInput.value='';}
-function addChatMsg(side,text){
-  const msgs=document.getElementById('messages');
-  const now=new Date();const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  const g=document.createElement('div');g.className=`msg-group ${side==='me'?'right':'left'}`;
-  g.innerHTML=`<div class="msg ${side}">${text}</div><div class="msg-time">${t}</div>`;
-  msgs.appendChild(g);msgs.scrollTop=msgs.scrollHeight;
-}
-document.getElementById('close-btn').addEventListener('click',closeChat);
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&currentCode)closeChat();});
-async function sendUserMessage(){
-  const input=document.getElementById('chat-input');const text=input.value.trim();
-  if(!text||!currentCode)return;input.value='';addChatMsg('me',text);
-  await db.from('messages').insert({code:currentCode.code,sender:currentCode.name,content:text});
-}
-document.getElementById('send-btn').addEventListener('click',sendUserMessage);
-document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendUserMessage();});
-document.getElementById('admin-link').addEventListener('click',()=>showPage('adminLogin'));
-document.getElementById('admin-back').addEventListener('click',()=>showPage('stories'));
-document.getElementById('admin-login-btn').addEventListener('click',()=>{
-  const pass=document.getElementById('admin-pass').value;
-  if(pass===ADMIN_PASSWORD){document.getElementById('admin-pass').value='';loadAdmin();showPage('admin');}
-  else document.getElementById('admin-err').style.display='block';
-});
-document.getElementById('admin-pass').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('admin-login-btn').click();});
-let selectedCode=null,adminSub=null,convos={};
-async function loadAdmin(){
-  const{data:codes}=await db.from('codes').select('*');
-  const{data:messages}=await db.from('messages').select('*').order('created_at',{ascending:true});
-  convos={};codes.forEach(c=>convos[c.code]={name:c.name,messages:[],unread:0});
-  messages.forEach(m=>{if(convos[m.code])convos[m.code].messages.push(m);});
-  renderConvoList();
-  if(adminSub)adminSub.unsubscribe();
-  adminSub=db.channel('admin-all').on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{
-    const m=p.new;if(!convos[m.code])return;convos[m.code].messages.push(m);
-    if(m.sender!=='admin'){convos[m.code].unread=(convos[m.code].unread||0)+1;showToast(`New message from ${convos[m.code].name}`);if(selectedCode===m.code)renderAdminMessages();}
-    renderConvoList();
-  }).subscribe();
-}
-function renderConvoList(){
-  const list=document.getElementById('convo-list');list.innerHTML='';
-  Object.entries(convos).forEach(([code,c])=>{
-    const last=c.messages.filter(m=>m.sender!=='system').slice(-1)[0];
-    const item=document.createElement('div');item.className=`convo-item${selectedCode===code?' active':''}`;
-    item.innerHTML=`<div class="convo-name">${c.name}${c.unread?`<span class="convo-badge">${c.unread}</span>`:''}</div><div class="convo-preview">${last?last.content:'No messages yet'}</div>`;
-    item.addEventListener('click',()=>selectConvo(code));list.appendChild(item);
+// ── Chart setup ──────────────────────────────────────────
+let equityChart = null;
+let equityData  = [10000];
+let equityLabels= ['Start'];
+
+function initChart(){
+  const ctx = document.getElementById('equityChart').getContext('2d');
+  equityChart = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels: equityLabels,
+      datasets:[{
+        data: equityData,
+        borderColor:'#00e5a0',
+        backgroundColor:'rgba(0,229,160,0.05)',
+        borderWidth:1.5,
+        pointRadius:0,
+        fill:true,
+        tension:0.4
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{
+        backgroundColor:'#181c22',borderColor:'#1e2330',borderWidth:1,
+        titleColor:'#5a6478',bodyColor:'#e8ecf0',
+        callbacks:{label:c=>'$'+c.parsed.y.toFixed(0)}
+      }},
+      scales:{
+        x:{grid:{color:'rgba(30,35,48,.5)'},ticks:{color:'#5a6478',font:{size:9},maxRotation:0}},
+        y:{grid:{color:'rgba(30,35,48,.5)'},ticks:{color:'#5a6478',font:{size:9},callback:v=>'$'+Math.round(v/1000)+'K'}}
+      }
+    }
   });
 }
-function selectConvo(code){selectedCode=code;if(convos[code])convos[code].unread=0;renderConvoList();renderAdminMessages();document.getElementById('admin-chat-header').textContent=convos[code]?.name||code;}
-function renderAdminMessages(){
-  const el=document.getElementById('admin-messages');el.innerHTML='';
-  if(!selectedCode||!convos[selectedCode])return;
-  convos[selectedCode].messages.filter(m=>m.sender!=='system').forEach(m=>{
-    const now=new Date(m.created_at);const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-    const div=document.createElement('div');div.style.cssText=`display:flex;flex-direction:column;align-items:${m.sender==='admin'?'flex-end':'flex-start'}`;
-    div.innerHTML=`<div class="admin-msg" style="background:${m.sender==='admin'?'#fff':'rgba(255,255,255,0.08)'};color:${m.sender==='admin'?'#0a0a0a':'#fff'}">${m.content}</div><div class="admin-msg-meta">${m.sender} \u00b7 ${t}</div>`;
-    el.appendChild(div);
-  });el.scrollTop=el.scrollHeight;
+initChart();
+
+// ── Clock & Session ──────────────────────────────────────
+function getSession(){
+  const h=new Date().getUTCHours();
+  if(h>=7&&h<10)  return'LONDON';
+  if(h>=13&&h<16) return'NEW YORK';
+  if(h>=0&&h<3)   return'TOKYO';
+  return'CLOSED';
 }
-async function sendAdminReply(){
-  const input=document.getElementById('admin-reply-input');const text=input.value.trim();
-  if(!text||!selectedCode)return;input.value='';
-  await db.from('messages').insert({code:selectedCode,sender:'admin',content:text});
-  convos[selectedCode].messages.push({code:selectedCode,sender:'admin',content:text,created_at:new Date().toISOString()});
-  renderAdminMessages();
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toTimeString().slice(0,8);
+  document.getElementById('date-display').textContent=n.toDateString();
+  const sess=getSession();
+  const sc=sess==='CLOSED'?'var(--muted)':'var(--accent)';
+  ['session-ticker','session-cell'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.textContent=sess;el.style.color=sc;}
+  });
 }
-document.getElementById('admin-send-btn').addEventListener('click',sendAdminReply);
-document.getElementById('admin-reply-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendAdminReply();});
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+setInterval(updateClock,1000);
+updateClock();
+
+// ── Live price (from price_feed.py output) ───────────────
+let currentBid = 0;
+let openBid    = 0;
+
+async function loadLivePrice(){
+  try{
+    const r=await fetch('live_price.json?t='+Date.now());
+    if(!r.ok) return;
+    const p=await r.json();
+    if(!p.bid) return;
+
+    currentBid = parseFloat(p.bid);
+    const ask  = parseFloat(p.ask);
+    const spread = parseFloat(p.spread);
+
+    if(openBid===0) openBid=currentBid;
+
+    document.getElementById('gold-price').textContent=currentBid.toFixed(2);
+    document.getElementById('gold-bid').textContent=currentBid.toFixed(2);
+    document.getElementById('gold-ask').textContent=ask.toFixed(2);
+    document.getElementById('gold-spread').textContent=spread.toFixed(2);
+
+    const chg=currentBid-openBid;
+    const chgEl=document.getElementById('gold-chg');
+    chgEl.textContent=(chg>=0?'+':'')+chg.toFixed(2);
+    chgEl.style.color=chg>=0?'var(--green)':'var(--red)';
+
+    // Balance from MT5
+    if(p.balance && p.balance > 0){
+      document.getElementById('balance-display').textContent='$'+parseFloat(p.balance).toFixed(2);
+    }
+    if(p.equity){
+      document.getElementById('equity-display').textContent='$'+parseFloat(p.equity).toFixed(2);
+    }
+    if(p.profit !== undefined){
+      const prof = parseFloat(p.profit);
+      const todayEl = document.getElementById('today-pnl');
+      todayEl.textContent=(prof>=0?'+':'')+'$'+prof.toFixed(2)+' today';
+      todayEl.style.color=prof>=0?'var(--green)':'var(--red)';
+    }
+
+    // Update last update time
+    document.getElementById('last-update').textContent=new Date().toTimeString().slice(0,8);
+    document.getElementById('last-update-full').textContent='Last update: '+new Date().toTimeString().slice(0,8);
+
+    // Mark as live
+    const badge=document.getElementById('live-badge');
+    badge.textContent='LIVE';
+    badge.className='live-badge live-ok';
+
+  }catch(e){
+    // price_feed.py not running — show static indicator
+    const badge=document.getElementById('live-badge');
+    badge.textContent='STATIC';
+    badge.className='live-badge live-off';
+  }
+}
+
+// ── Paper trading state ──────────────────────────────────
+async function loadState(){
+  try{
+    const r=await fetch('../paper_trading/logs/state.json?t='+Date.now());
+    if(!r.ok) throw new Error('no state');
+    const s=await r.json();
+
+    const closed = s.closed_trades||[];
+    const open   = s.open_trades||[];
+    const bal    = parseFloat(s.balance||10000);
+    const peak   = parseFloat(s.peak_balance||bal);
+
+    // Balance (only update if price_feed is not providing it)
+    if(currentBid===0){
+      document.getElementById('balance-display').textContent='$'+bal.toFixed(2);
+    }
+
+    // Stats
+    const wins   = closed.filter(t=>parseFloat(t.pnl||0)>0).length;
+    const losses = closed.length - wins;
+    const wr     = closed.length>0?(wins/closed.length*100).toFixed(1):0;
+    const netPnl = closed.reduce((a,t)=>a+parseFloat(t.pnl||0),0);
+    const grossP = closed.filter(t=>parseFloat(t.pnl||0)>0).reduce((a,t)=>a+parseFloat(t.pnl),0);
+    const grossL = Math.abs(closed.filter(t=>parseFloat(t.pnl||0)<=0).reduce((a,t)=>a+parseFloat(t.pnl),0));
+    const pf     = grossL>0?(grossP/grossL).toFixed(2):'--';
+    const dd     = peak>0?((peak-bal)/peak*100).toFixed(2):0;
+    const ret    = ((bal-10000)/10000*100).toFixed(1);
+
+    document.getElementById('total-trades').textContent=closed.length;
+    document.getElementById('total-wins').textContent=wins;
+    document.getElementById('total-losses').textContent=losses;
+    document.getElementById('open-count').textContent=open.length;
+    document.getElementById('net-pnl').textContent=(netPnl>=0?'+$':'-$')+Math.abs(netPnl).toFixed(0);
+    document.getElementById('net-pnl').style.color=netPnl>=0?'var(--green)':'var(--red)';
+    document.getElementById('wr-display').textContent=wr+'%';
+    document.getElementById('wr-bar').style.width=Math.min(wr,100)+'%';
+    document.getElementById('pf-display').textContent=pf;
+    document.getElementById('dd-display').textContent=dd+'%';
+    document.getElementById('dd-bar').style.width=Math.min(dd,100)+'%';
+    document.getElementById('ret-display').textContent=(ret>=0?'+':'')+ret+'%';
+    document.getElementById('ret-display').style.color=ret>=0?'var(--accent)':'var(--red)';
+
+    // Update equity chart with real data
+    if(closed.length>0){
+      const newEq=[10000];
+      closed.forEach(t=>newEq.push(Math.max(100,newEq[newEq.length-1]+parseFloat(t.pnl||0))));
+      const newLbs=newEq.map((_,i)=>i===0?'Start':i===newEq.length-1?'Now':'');
+      equityChart.data.labels=newLbs;
+      equityChart.data.datasets[0].data=newEq;
+      equityChart.update('none');
+      document.getElementById('chart-title').textContent=
+        'equity curve — paper trading live ('+closed.length+' trades)';
+    }
+
+    // Trade rows
+    if(closed.length>0){
+      const rows=document.getElementById('trade-rows');
+      rows.innerHTML='';
+      closed.slice(-10).reverse().forEach(t=>{
+        const d=document.createElement('div');
+        d.className='trade-row';
+        const tc=t.signal==='BUY'?'tag-buy':'tag-sell';
+        const rc=t.result==='win'?'color:var(--green)':'color:var(--red)';
+        const pc=parseFloat(t.pnl||0)>0?'color:var(--green)':'color:var(--red)';
+        const pnl=parseFloat(t.pnl||0);
+        const balAfter=parseFloat(t.balance_after||bal);
+        d.innerHTML=`<span class="tag ${tc}">${t.signal}</span><span style="color:var(--muted)">${parseFloat(t.entry_price||0).toFixed(0)}</span><span style="color:var(--muted)">${parseFloat(t.exit_price||0).toFixed(0)}</span><span style="${rc}">${(t.result||'').toUpperCase()}</span><span style="${pc}">${pnl>0?'+':'-'}$${Math.abs(pnl).toFixed(0)}</span><span style="color:var(--text)">$${(balAfter/1000).toFixed(1)}K</span>`;
+        rows.appendChild(d);
+      });
+    }
+
+    // Open trades
+    const ol=document.getElementById('open-trades-list');
+    if(open.length>0){
+      ol.innerHTML='';
+      open.forEach(t=>{
+        const d=document.createElement('div');
+        d.className='open-trade'+(t.signal==='SELL'?' sell':'');
+        d.innerHTML=`<div style="display:flex;justify-content:space-between"><span class="tag ${t.signal==='BUY'?'tag-buy':'tag-sell'}">${t.signal}</span><span style="color:var(--muted)">#${t.id}</span></div><div style="margin-top:5px;color:var(--muted)">Entry: <span style="color:var(--text)">${t.entry_price}</span></div><div style="color:var(--muted)">SL: <span style="color:var(--red)">${t.sl}</span> | TP: <span style="color:var(--green)">${t.tp}</span></div>`;
+        ol.appendChild(d);
+      });
+    } else {
+      ol.innerHTML='<div style="font-size:10px;color:var(--muted);text-align:center;padding:12px 0">No open trades</div>';
+    }
+
+  }catch(e){}
+
+  // Load orchestrator state
+  try{
+    const or=await fetch('../agents/orchestrator/last_decision.json?t='+Date.now());
+    if(or.ok){
+      const o=await or.json();
+      const verdict=o.verdict||'NO-GO';
+      const el=document.getElementById('orch-status');
+      el.textContent=verdict;
+      el.style.color=verdict==='GO'?'var(--green)':'var(--red)';
+
+      // Update signal tag
+      const sig=o.signal||'none';
+      const stag=document.getElementById('signal-tag');
+      if(sig==='BUY'){stag.className='sig-tag sig-buy';stag.textContent='BUY';}
+      else if(sig==='SELL'){stag.className='sig-tag sig-sell';stag.textContent='SELL';}
+      else{stag.className='sig-tag sig-none';stag.textContent='NONE';}
+    }
+  }catch(e){}
+
+  // Load risk state
+  try{
+    const rr=await fetch('../agents/risk_manager/risk_state.json?t='+Date.now());
+    if(rr.ok){
+      const risk=await rr.json();
+      const el=document.getElementById('risk-status');
+      el.textContent=risk.score+'/10';
+      el.style.color=risk.score>=7?'var(--green)':'var(--red)';
+    }
+  }catch(e){}
+
+  // Load news state
+  try{
+    const na=await fetch('../agents/news_sentinel/current_alert.json?t='+Date.now());
+    if(na.ok){
+      const news=await na.json();
+      const el=document.getElementById('news-status');
+      const blocked=news.block_trading;
+      el.textContent=blocked?'BLOCK':'OK';
+      el.style.color=blocked?'var(--red)':'var(--green)';
+    }
+  }catch(e){}
+
+  // Load MTF bias
+  try{
+    const mt=await fetch('../agents/market_analyst/mtf_bias.json?t='+Date.now());
+    if(mt.ok){
+      const mtf=await mt.json();
+      const el=document.getElementById('mtf-status');
+      const dir=mtf.direction||'neutral';
+      el.textContent=dir.toUpperCase().slice(0,4);
+      el.style.color=dir==='BUY'?'var(--green)':dir==='SELL'?'var(--red)':'var(--muted)';
+    }
+  }catch(e){}
+
+  // Load market narrative
+  try{
+    const mn=await fetch('../agents/market_analyst/market_narrative.json?t='+Date.now());
+    if(mn.ok){
+      const m=await mn.json();
+      if(m.narrative){
+        document.getElementById('narrative').textContent=m.narrative;
+        if(m.price && currentBid===0){
+          currentBid=parseFloat(m.price);
+          document.getElementById('gold-price').textContent=currentBid.toFixed(2);
+        }
+      }
+    }
+  }catch(e){}
+}
+
+// ── Run everything ────────────────────────────────────────
+loadLivePrice();
+loadState();
+setInterval(loadLivePrice, 5000);
+setInterval(loadState, 5000);
 </script>
 </body>
 </html>
